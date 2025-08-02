@@ -1,154 +1,130 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<!DOCTYPE html><html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>فات شات - المنشورات والمراسلة</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>فات شات - المنشورات</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+      font-family: 'Tahoma', sans-serif;
+      background: #e0e5ec;
       margin: 0;
-      padding: 60px 20px 20px;
-      direction: rtl;
-      perspective: 1000px;
+      padding: 0;
     }
-
-    /* شريط علوي ثابت */
     #topBar {
-      position: fixed;
-      top: 0;
-      left: 50%;
-      transform: translateX(-50%) translateZ(0);
-      background: linear-gradient(90deg, #667eea, #764ba2);
-      padding: 15px 40px;
       display: flex;
-      justify-content: flex-end;
-      gap: 20px;
-      z-index: 9999;
-      border-radius: 0 0 25px 25px;
-      max-width: 700px;
-      width: 100%;
-      box-sizing: border-box;
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
-    }
-
-    #topBar button {
-      font-size: 18px;
-      font-weight: 700;
-      padding: 14px 36px;
-      border-radius: 15px;
-      background: linear-gradient(145deg, #ff758c, #ff7eb3);
-      border: none;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      background: linear-gradient(to left, #2c3e50, #4ca1af);
       color: white;
-      cursor: pointer;
-      box-shadow:
-        0 5px 15px rgba(255, 118, 140, 0.6),
-        inset 0 -3px 5px rgba(255, 255, 255, 0.3),
-        inset 0 3px 3px rgba(0, 0, 0, 0.15);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      min-width: 150px;
-      text-align: center;
-      user-select: none;
-      transform-style: preserve-3d;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
     }
-
-    #topBar button:hover {
-      transform: translateZ(10px) scale(1.05);
-      box-shadow:
-        0 8px 25px rgba(255, 118, 140, 0.8),
-        inset 0 -4px 6px rgba(255, 255, 255, 0.5),
-        inset 0 4px 4px rgba(0, 0, 0, 0.3);
-    }
-
-    #loginScreen, #mainApp {
-      max-width: 700px;
-      margin: auto;
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-
-    textarea, input[type="text"], select {
+    #postInput, #mediaInput {
       width: 100%;
       padding: 10px;
-      margin: 8px 0;
-      border-radius: 15px;
-      border: 1px solid #c3cde6;
-      font-size: 16px;
-      box-shadow:
-        inset 0 1px 3px rgba(255, 255, 255, 0.8),
-        0 2px 6px rgba(0, 0, 0, 0.1);
-      transition: box-shadow 0.3s ease;
+      border-radius: 10px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
     }
-
-    textarea:focus, input[type="text"]:focus, select:focus {
-      outline: none;
-      box-shadow:
-        0 0 8px 3px #7d7dff,
-        inset 0 1px 6px rgba(255, 255, 255, 1);
-    }
-
     button {
-      padding: 10px 20px;
+      padding: 12px;
       border: none;
-      background: #007bff;
+      border-radius: 12px;
+      background: linear-gradient(to right, #4ca1af, #2c3e50);
       color: white;
       font-weight: bold;
-      border-radius: 15px;
       cursor: pointer;
-      box-shadow:
-        0 6px 12px rgba(0, 0, 0, 0.15),
-        inset 0 2px 5px rgba(255, 255, 255, 0.7);
-      transform-style: preserve-3d;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      margin-top: 10px;
+      transition: all 0.3s ease-in-out;
     }
-
     button:hover {
-      transform: translateZ(8px) scale(1.05);
-      box-shadow:
-        0 10px 25px rgba(0, 0, 0, 0.3),
-        inset 0 4px 8px rgba(255, 255, 255, 0.9);
+      transform: scale(1.05);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     }
-
     .post {
       background: #fff;
-      margin: 15px 0;
-      padding: 20px;
-      border-radius: 25px;
-      box-shadow:
-        0 12px 15px rgba(0, 0, 0, 0.1),
-        0 6px 10px rgba(0, 0, 0, 0.08);
-      transition: transform 0.3s ease;
-      transform-style: preserve-3d;
+      margin: 15px;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 5px 10px rgba(0,0,0,0.1);
     }
-
-    .post:hover {
-      transform: translateZ(20px) rotateX(5deg);
-      box-shadow:
-        0 20px 40px rgba(0, 0, 0, 0.25),
-        0 10px 20px rgba(0, 0, 0, 0.15);
-    }
-
     .post img, .post video {
       max-width: 100%;
-      border-radius: 15px;
-      margin-top: 15px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      margin-top: 10px;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>  <div id="topBar">
+    <h3>👋 مرحبًا زائر</h3>
+    <span>فات شات</span>
+  </div>  <div style="padding: 15px;">
+    <textarea id="postInput" rows="3" placeholder="✍️ اكتب منشورك هنا..."></textarea>
+    <input type="file" id="mediaInput" accept="image/*,video/*">
+    <button onclick="addPost()">📤 نشر</button><div id="posts"></div>
+
+  </div>  <script>
+    let currentUser = "زائر";
+
+    function addPost() {
+      const text = document.getElementById("postInput").value.trim();
+      const fileInput = document.getElementById("mediaInput");
+      const file = fileInput.files[0];
+
+      if (!text && !file) {
+        alert("يرجى كتابة منشور أو اختيار ملف.");
+        return;
+      }
+
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const media = {
+            type: file.type.startsWith("image") ? "image" : "video",
+            data: e.target.result
+          };
+          savePost(text, media);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        savePost(text, null);
+      }
     }
 
-    .postHeader {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
+    function savePost(text, media) {
+      const posts = JSON.parse(localStorage.getItem("posts") || "[]");
+      const newPost = {
+        user: currentUser,
+        text: text,
+        media: media,
+        time: new Date().toISOString()
+      };
+      posts.unshift(newPost);
+      localStorage.setItem("posts", JSON.stringify(posts));
+
+      document.getElementById("postInput").value = "";
+      document.getElementById("mediaInput").value = "";
+      renderPosts();
     }
 
-    .avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
+    function renderPosts() {
+      const posts = JSON.parse(localStorage.getItem("posts") || "[]");
+      const container = document.getElementById("posts");
+      container.innerHTML = posts.map(p => `
+        <div class="post">
+          <strong>🧑‍💬 ${p.user}</strong><br>
+          <span>${p.text}</span><br>
+          <small style="color:#777;">🕓 ${new Date(p.time).toLocaleString('ar-EG')}</small>
+          ${p.media ? (p.media.type === 'image' ? `<img src="${p.media.data}" alt="صورة">` : `<video controls src="${p.media.data}"></video>`) : ''}
+        </div>
+      `).join("");
+    }
+
+    window.onload = () => {
+      renderPosts();
+    };
+  </script></body>
+</html>      border-radius: 50%;
       box-shadow:
         0 3px 8px rgba(0, 0, 0, 0.25);
     }
@@ -434,3 +410,4 @@
     document.getElementById("chatPage").style.display = "none";
   }
 };
+
