@@ -39,22 +39,45 @@
     margin: 0;
   }
   .conversation {
-    padding: 15px 20px;
+    padding: 10px 15px;
     cursor: pointer;
     border-bottom: 1px solid rgba(255,255,255,0.2);
     transition: background 0.3s ease;
+    display: flex;
+    align-items: center;
   }
   .conversation:hover, .conversation.active {
     background: rgba(255,255,255,0.3);
   }
-  .conversation .email {
-    font-weight: 600;
-    font-size: 1rem;
+  .conversation img {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    margin-left: 10px;
+    object-fit: cover;
+    border: 2px solid white;
   }
-  .conversation .lastMsg {
+  .conversation .info {
+    flex: 1;
+    overflow: hidden;
+  }
+  .conversation .username {
+    font-weight: 700;
+    font-size: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .conversation .email {
     font-size: 0.85rem;
     color: #ddd;
-    margin-top: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .conversation .status {
+    font-size: 0.75rem;
+    color: #bbb;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -70,6 +93,16 @@
     border-bottom: 1px solid rgba(255,255,255,0.3);
     font-weight: 700;
     font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+  }
+  #chatHeader img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-left: 10px;
+    object-fit: cover;
+    border: 2px solid white;
   }
   #messages {
     flex: 1;
@@ -149,6 +182,341 @@
   }
   #authBox {
     background: rgba(255,255,255,0.15);
+    padding: 30px 40px;
+    border-radius: 15px;
+    width: 320px;
+    text-align: center;
+    color: white;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  #authBox input {
+    width: 100%;
+    margin-bottom: 15px;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    font-size: 1rem;
+  }
+  #authBox button {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  #authBox button:hover {
+    background: linear-gradient(90deg, #2575fc 0%, #6a11cb 100%);
+  }
+  #authBox .toggle-btn {
+    background: transparent;
+    border: 2px solid white;
+    margin-top: 15px;
+  }
+  .error-message {
+    color: #ff6b6b;
+    margin-bottom: 15px;
+    font-weight: 600;
+  }
+  #logoutBtn {
+    background: #ff5252;
+    margin: 10px 15px;
+    border-radius: 20px;
+    padding: 8px 15px;
+    border: none;
+    cursor: pointer;
+    font-weight: 700;
+    align-self: flex-start;
+    color: white;
+  }
+</style>
+</head>
+<body>
+
+<div id="app" style="display:none;">
+  <div id="conversationsList">
+    <h3>المحادثات</h3>
+    <!-- قائمة المحادثات ستظهر هنا -->
+  </div>
+
+  <div id="chatWindow">
+    <div id="chatHeader">
+      اختر محادثة
+    </div>
+    <div id="messages"></div>
+    <div id="inputArea" style="display:none;">
+      <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." autocomplete="off" />
+      <button id="sendBtn">إرسال</button>
+    </div>
+    <button id="logoutBtn">تسجيل خروج</button>
+  </div>
+</div>
+
+<!-- تسجيل الدخول -->
+<div id="authContainer">
+  <div id="authBox">
+    <h2 id="formTitle">تسجيل الدخول</h2>
+    <div class="error-message" id="errorMsg"></div>
+    <input type="email" id="email" placeholder="البريد الإلكتروني" autocomplete="username" />
+    <input type="password" id="password" placeholder="كلمة المرور" autocomplete="current-password" />
+    <input type="text" id="username" placeholder="اسم المستخدم" style="display:none;" />
+    <input type="text" id="status" placeholder="الحالة النصية" style="display:none;" />
+    <button id="submitBtn">تسجيل الدخول</button>
+    <button class="toggle-btn" id="toggleFormBtn">إنشاء حساب جديد</button>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAm0hh9I6i58ywW1D2gZg09liG-wG-tBsU",
+    authDomain: "chat-fat-4f082.firebaseapp.com",
+    projectId: "chat-fat-4f082",
+    storageBucket: "chat-fat-4f082.appspot.com",
+    messagingSenderId: "297367474930",
+    appId: "1:297367474930:web:a05b983e05a0ba257fb66b",
+    measurementId: "G-MBGC7KZ8H0"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // عناصر الصفحة
+  const authContainer = document.getElementById('authContainer');
+  const appDiv = document.getElementById('app');
+  const formTitle = document.getElementById('formTitle');
+  const submitBtn = document.getElementById('submitBtn');
+  const toggleFormBtn = document.getElementById('toggleFormBtn');
+  const errorMsg = document.getElementById('errorMsg');
+  const emailInput = document.getElementById('email');
+  const passwordInput = document.getElementById('password');
+  const usernameInput = document.getElementById('username');
+  const statusInput = document.getElementById('status');
+  const conversationsList = document.getElementById('conversationsList');
+  const chatHeader = document.getElementById('chatHeader');
+  const messagesDiv = document.getElementById('messages');
+  const messageInput = document.getElementById('messageInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const inputArea = document.getElementById('inputArea');
+  const logoutBtn = document.getElementById('logoutBtn');
+
+  let isLogin = true;
+  let currentChatEmail = null;
+  let currentChatUserData = null;
+
+  toggleFormBtn.addEventListener('click', () => {
+    isLogin = !isLogin;
+    errorMsg.textContent = '';
+    if (isLogin) {
+      formTitle.textContent = 'تسجيل الدخول';
+      submitBtn.textContent = 'تسجيل الدخول';
+      toggleFormBtn.textContent = 'إنشاء حساب جديد';
+      usernameInput.style.display = 'none';
+      statusInput.style.display = 'none';
+    } else {
+      formTitle.textContent = 'إنشاء حساب جديد';
+      submitBtn.textContent = 'إنشاء حساب';
+      toggleFormBtn.textContent = 'لدي حساب بالفعل';
+      usernameInput.style.display = 'block';
+      statusInput.style.display = 'block';
+    }
+  });
+
+  submitBtn.addEventListener('click', async () => {
+    errorMsg.textContent = '';
+    const email = emailInput.value.trim();
+    const password = passwordInput.value.trim();
+    const username = usernameInput.value.trim();
+    const status = statusInput.value.trim() || "مرحباً!";
+
+    if (!email || !password || (!isLogin && !username)) {
+      errorMsg.textContent = 'يرجى تعبئة جميع الحقول المطلوبة.';
+      return;
+    }
+
+    try {
+      if (isLogin) {
+        await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        await createUserWithEmailAndPassword(auth, email, password);
+        const user = auth.currentUser;
+        if (user) {
+          const userDocRef = doc(db, "users", user.uid);
+          await setDoc(userDocRef, {
+            email: user.email,
+            username,
+            status,
+            photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=6a11cb&color=fff&rounded=true&size=128`,
+          });
+        }
+        alert('تم إنشاء الحساب بنجاح!');
+      }
+    } catch (e) {
+      errorMsg.textContent = e.message;
+    }
+  });
+
+  onAuthStateChanged(auth, async user => {
+    if (user) {
+      authContainer.style.display = 'none';
+      appDiv.style.display = 'flex';
+      await loadConversations();
+    } else {
+      authContainer.style.display = 'flex';
+      appDiv.style.display = 'none';
+      clearChat();
+    }
+  });
+
+  logoutBtn.addEventListener('click', () => {
+    signOut(auth);
+  });
+  // تحميل قائمة المستخدمين (باستثناء المستخدم الحالي)
+  async function loadConversations() {
+    conversationsList.innerHTML = '<h3>المحادثات</h3>';
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+
+    // جلب كل المستخدمين من مجموعة "users"
+    const usersSnapshot = await getDocs(collection(db, "users"));
+
+    usersSnapshot.forEach(docSnap => {
+      const userData = docSnap.data();
+      if (userData.email !== currentUser.email) {
+        addConversation(userData);
+      }
+    });
+  }
+
+  // إضافة عنصر محادثة لقائمة المحادثات
+  function addConversation(userData) {
+    const convDiv = document.createElement('div');
+    convDiv.classList.add('conversation');
+    convDiv.dataset.email = userData.email;
+    convDiv.dataset.userid = userData.email; // يمكن تغييره إلى uid لاحقًا
+
+    convDiv.innerHTML = `
+      <img src="${userData.photoURL || 'https://ui-avatars.com/api/?name=User&background=6a11cb&color=fff&rounded=true&size=128'}" alt="صورة المستخدم" />
+      <div class="info">
+        <div class="username">${userData.username || userData.email}</div>
+        <div class="email">${userData.email}</div>
+        <div class="status">${userData.status || ''}</div>
+      </div>
+    `;
+
+    convDiv.addEventListener('click', () => {
+      document.querySelectorAll('.conversation').forEach(c => c.classList.remove('active'));
+      convDiv.classList.add('active');
+      openChat(userData);
+    });
+
+    conversationsList.appendChild(convDiv);
+  }
+
+  // فتح محادثة مع مستخدم معين (يعرض الاسم والصورة في الهيدر ويبدأ الاستماع للرسائل)
+  function openChat(userData) {
+    currentChatEmail = userData.email;
+    currentChatUserData = userData;
+
+    chatHeader.innerHTML = `
+      <img src="${userData.photoURL || 'https://ui-avatars.com/api/?name=User&background=6a11cb&color=fff&rounded=true&size=128'}" alt="صورة المستخدم" />
+      <div>${userData.username || userData.email}</div>
+    `;
+
+    messagesDiv.innerHTML = '';
+    inputArea.style.display = 'flex';
+
+    listenChatMessages(currentChatEmail);
+  }
+
+  let unsubscribeMessages = null;
+
+  // الاستماع للرسائل بين المستخدم الحالي والبريد الآخر (بأي اتجاه)
+  function listenChatMessages(email) {
+    if (unsubscribeMessages) unsubscribeMessages();
+
+    const currentEmail = auth.currentUser.email;
+
+    // مجموعة الرسائل
+    const messagesRef = collection(db, "messages");
+
+    // ترتيب حسب التاريخ
+    const q = query(messagesRef, orderBy("timestamp"));
+
+    unsubscribeMessages = onSnapshot(q, snapshot => {
+      messagesDiv.innerHTML = '';
+
+      snapshot.forEach(doc => {
+        const msg = doc.data();
+
+        // فلترة الرسائل بين المستخدمين فقط
+        if (
+          (msg.userEmail === currentEmail && msg.to === email) ||
+          (msg.userEmail === email && msg.to === currentEmail)
+        ) {
+          const div = document.createElement('div');
+          div.classList.add('message');
+
+          if (msg.userEmail === currentEmail) {
+            div.classList.add('sent');
+          } else {
+            div.classList.add('received');
+          }
+
+          div.innerHTML = `
+            <div>${msg.text}</div>
+            <div class="time">${msg.timestamp ? new Date(msg.timestamp.seconds * 1000).toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'}) : ''}</div>
+          `;
+
+          messagesDiv.appendChild(div);
+        }
+      });
+
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    });
+  }
+
+  // إرسال رسالة في المحادثة المفتوحة
+  sendBtn.addEventListener('click', async () => {
+    const text = messageInput.value.trim();
+    if (!text || !currentChatEmail) return;
+
+    const currentEmail = auth.currentUser.email;
+
+    try {
+      await addDoc(collection(db, "messages"), {
+        userEmail: currentEmail,
+        to: currentChatEmail,
+        text,
+        timestamp: serverTimestamp()
+      });
+      messageInput.value = '';
+    } catch (e) {
+      alert('خطأ في إرسال الرسالة');
+    }
+  });
+
+  // تنظيف الدردشة عند تسجيل الخروج
+  function clearChat() {
+    currentChatEmail = null;
+    currentChatUserData = null;
+    chatHeader.textContent = 'اختر محادثة';
+    messagesDiv.innerHTML = '';
+    inputArea.style.display = 'none';
+    conversationsList.innerHTML = '';
+  }
+</script>
+
+</body>
+</html>    background: rgba(255,255,255,0.15);
     padding: 30px 40px;
     border-radius: 15px;
     width: 320px;
@@ -444,3 +812,4 @@
 
 </body>
   </html>
+
