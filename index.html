@@ -23,11 +23,12 @@
       gap: 10px;
     }
     #app {
-      display: none;
-      height: 600px;
+      margin-top: 50px; /* ارتفاع الشريط العلوي */
+      height: calc(100vh - 50px);
       width: 900px;
       flex-direction: row;
       gap: 15px;
+      display: none;
     }
     input, button {
       padding: 10px;
@@ -54,6 +55,102 @@
     }
     #username, #status {
       display: none;
+    }
+    /* الشريط العلوي */
+    #topBar {
+      position: fixed;
+      top: 0; right: 0; left: 0;
+      height: 50px;
+      background: #6a11cb;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start; /* زر القائمة على اليمين، اسم المستخدم على يساره */
+      gap: 15px;
+      padding: 0 15px;
+      z-index: 1000;
+      box-sizing: border-box;
+      font-weight: bold;
+      font-size: 16px;
+      direction: rtl;
+    }
+  #menuBtn {
+  background: #6a11cb;
+  color: white;
+  border: none;
+  padding: 6px;
+  font-size: 20px;
+  border-radius: 50px;
+  cursor: pointer;
+  height: 50px;
+  width: 50px;
+  flex-grow: 0;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+    
+    #usernameDisplay {
+      flex-grow: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    /* القائمة المنسدلة */
+    #dropdownMenu {
+      position: fixed;
+      top: 50px;
+      right: 15px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      display: none;
+      flex-direction: column;
+      min-width: 180px;
+      z-index: 1001;
+    }
+    #dropdownMenu button {
+  color: #e74c3c;
+  background: transparent;
+  border: none;
+  padding: 10px 15px;
+  text-align: left;    /* النص يبدأ من اليسار */
+  direction: ltr;      /* اتجاه النص من اليسار لليمين */
+  font-weight: 700;
+  font-family: 'Arial Black', Arial, sans-serif;
+  width: 100%;
+  cursor: pointer;
+  font-size: 20px;
+  transition: background-color 0.3s, color 0.3s;
+  border-radius: 0;
+}
+#dropdownMenu button:hover {
+  background-color: #f0f0f0;
+  color: #c0392b; /* لون أغمق عند التمرير */
+}
+    #dropdownMenu button {
+      background: transparent;
+      border: none;
+      text-align: right;
+      padding: 10px 15px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+      box-sizing: border-box;
+      transition: background 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    #dropdownMenu button:hover {
+      background: #f0f0f0;
+    }
+    #dropdownMenu button:last-child {
+      border-bottom-left-radius: 5px;
+      border-bottom-right-radius: 5px;
     }
     /* المحادثات */
     #conversationsList {
@@ -145,16 +242,23 @@
     #inputArea input {
       flex-grow: 1;
     }
-    #logoutBtn, #deleteAccountBtn {
-      background: #b22222;
-      margin-top: 10px;
-    }
-    #logoutBtn:hover, #deleteAccountBtn:hover {
-      background: #7a1616;
-    }
   </style>
 </head>
 <body>
+
+<!-- الشريط العلوي -->
+<div id="topBar">
+  <button id="menuBtn" aria-haspopup="true" aria-expanded="false">☰</button>
+  <span id="usernameDisplay"></span>
+</div>
+
+<!-- القائمة المنسدلة -->
+<div id="dropdownMenu" role="menu" aria-label="قائمة المستخدم">
+  <button id="editProfileBtn" role="menuitem">تعديل بيانات المستخدم</button>
+  <button id="logoutMenuBtn" role="menuitem">تسجيل الخروج</button>
+  <button id="deleteAccountMenuBtn" role="menuitem">حذف الحساب</button>
+  <button id="aboutAppBtn" role="menuitem">عن التطبيق</button>
+</div>
 
 <!-- قسم تسجيل الدخول / إنشاء حساب -->
 <div id="authContainer">
@@ -178,15 +282,13 @@
       <input type="text" id="messageInput" placeholder="اكتب رسالة..." />
       <button id="sendBtn">إرسال</button>
     </div>
-    <button id="logoutBtn">تسجيل الخروج</button>
-    <button id="deleteAccountBtn">حذف الحساب</button>
   </div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, getDocs, doc, setDoc, deleteDoc, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, getDocs, doc, setDoc, deleteDoc, where, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAm0hh9I6i58ywW1D2gZg09liG-wG-tBsU",
@@ -219,8 +321,15 @@
   const messageInput = document.getElementById('messageInput');
   const sendBtn = document.getElementById('sendBtn');
   const inputArea = document.getElementById('inputArea');
-  const logoutBtn = document.getElementById('logoutBtn');
-  const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+
+  // عناصر القائمة العلوية
+  const menuBtn = document.getElementById('menuBtn');
+  const dropdownMenu = document.getElementById('dropdownMenu');
+  const editProfileBtn = document.getElementById('editProfileBtn');
+  const logoutMenuBtn = document.getElementById('logoutMenuBtn');
+  const deleteAccountMenuBtn = document.getElementById('deleteAccountMenuBtn');
+  const aboutAppBtn = document.getElementById('aboutAppBtn');
+  const usernameDisplay = document.getElementById('usernameDisplay');
 
   let isLogin = true;
   let currentChatEmail = null;
@@ -247,7 +356,7 @@
     }
   });
 
-  // تسجيل الدخول أو إنشاء الحساب (لم يتغير)
+  // تسجيل الدخول أو إنشاء الحساب
   submitBtn.addEventListener('click', async () => {
     errorMsg.textContent = '';
     const email = emailInput.value.trim();
@@ -287,12 +396,22 @@
     if (user) {
       authContainer.style.display = 'none';
       appDiv.style.display = 'flex';
+
+      // جلب اسم المستخدم للعرض في الشريط العلوي
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists()) {
+        usernameDisplay.textContent = userDoc.data().username || user.email;
+      } else {
+        usernameDisplay.textContent = user.email;
+      }
+
       await loadConversations();
       listenUnreadMessages();
     } else {
       authContainer.style.display = 'flex';
       appDiv.style.display = 'none';
       clearChat();
+      usernameDisplay.textContent = '';
       if (unsubscribeMessages) unsubscribeMessages();
     }
   });
@@ -409,13 +528,8 @@
     });
   }
 
-  // ...
-  // باقي الكود في الجزء الثاني مع الاستماع للرسائل غير المقروءة وتحديث الواجهة
-  
-  
-// (تكملة من الجزء الأول...)
-
   // الاستماع لرسائل غير مقروءة لتحديث عداد الإشعارات
+  
   function listenUnreadMessages() {
     const usersRef = collection(db, "users");
     onSnapshot(usersRef, snapshot => {
@@ -425,12 +539,11 @@
           const chatId = getChatId(auth.currentUser.email, userData.email);
           const messagesRef = collection(db, "chats", chatId, "messages");
 
-          // استعلام فقط للرسائل غير المقروءة التي أرسلها المستخدم الآخر
           const q = query(messagesRef, where("sender", "==", userData.email), where("read", "==", false));
-          
+
           onSnapshot(q, snapshot => {
             if (!currentChatEmail || currentChatEmail !== userData.email) {
-              const count = snapshot.size; // عدد الرسائل غير المقروءة
+              const count = snapshot.size;
               if (count > 0) {
                 unreadCounts.set(userData.email, count);
               } else {
@@ -444,7 +557,6 @@
     });
   }
 
-  // تحديث عداد الرسائل غير المقروءة في قائمة المحادثات
   function updateUnreadUI() {
     const conversationDivs = document.querySelectorAll('.conversation');
     conversationDivs.forEach(div => {
@@ -460,7 +572,6 @@
     });
   }
 
-  // مسح بيانات المحادثة عند تسجيل الخروج
   function clearChat() {
     currentChatEmail = null;
     currentChatUserData = null;
@@ -471,25 +582,57 @@
     updateUnreadUI();
   }
 
-  // تسجيل الخروج
-  logoutBtn.addEventListener('click', async () => {
+  // القائمة المنسدلة - إظهار وإخفاء
+  menuBtn.addEventListener('click', () => {
+    const isExpanded = menuBtn.getAttribute('aria-expanded') === 'true';
+    if (isExpanded) {
+      dropdownMenu.style.display = 'none';
+      menuBtn.setAttribute('aria-expanded', 'false');
+    } else {
+      dropdownMenu.style.display = 'flex';
+      menuBtn.setAttribute('aria-expanded', 'true');
+    }
+  });
+
+  // إغلاق القائمة عند النقر خارجها
+  document.addEventListener('click', (e) => {
+    if (!dropdownMenu.contains(e.target) && e.target !== menuBtn) {
+      dropdownMenu.style.display = 'none';
+      menuBtn.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  // زر تعديل بيانات المستخدم (تفتح نموذج أو alert مؤقت)
+  editProfileBtn.addEventListener('click', async () => {
+    dropdownMenu.style.display = 'none';
+    menuBtn.setAttribute('aria-expanded', 'false');
+
+    // هنا يمكنك فتح نموذج تعديل بيانات - للمثال عرض alert
+    alert('هنا يمكنك فتح نموذج تعديل بيانات المستخدم.');
+  });
+
+  // زر تسجيل الخروج
+  logoutMenuBtn.addEventListener('click', async () => {
+    dropdownMenu.style.display = 'none';
+    menuBtn.setAttribute('aria-expanded', 'false');
     if (unsubscribeMessages) unsubscribeMessages();
     await signOut(auth);
   });
 
-  // حذف الحساب (مع حذف بياناته في Firestore)
-  deleteAccountBtn.addEventListener('click', async () => {
+  // زر حذف الحساب
+  deleteAccountMenuBtn.addEventListener('click', async () => {
+    dropdownMenu.style.display = 'none';
+    menuBtn.setAttribute('aria-expanded', 'false');
     if (!confirm('هل أنت متأكد أنك تريد حذف الحساب نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.')) {
       return;
     }
     try {
       const user = auth.currentUser;
       if (user && user.uid) {
-        // حذف مستند المستخدم من قاعدة البيانات
         const userDocRef = doc(db, "users", user.uid);
         await deleteDoc(userDocRef);
       }
-      await deleteUser(user);
+      await deleteUser(auth.currentUser);
       alert('تم حذف الحساب بنجاح.');
       location.reload();
     } catch (error) {
@@ -501,8 +644,13 @@
     }
   });
 
+  // زر عن التطبيق
+  aboutAppBtn.addEventListener('click', () => {
+    dropdownMenu.style.display = 'none';
+    menuBtn.setAttribute('aria-expanded', 'false');
+    alert('تطبيق دردشة فورية تم تطويره باستخدام Firebase و JavaScript.');
+  });
 </script>
 
-
 </body>
-</html>
+  </html>
