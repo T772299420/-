@@ -4,14 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>دردشة فورية</title>
+  
   <style>
+
     body {
       font-family: Arial, sans-serif;
       direction: rtl;
       text-align: right;
       margin: 0; padding: 0; background: #f0f0f0;
       display: flex; justify-content: center; align-items: flex-start; height: 100vh;
+    
+      
     }
+    
     #authContainer, #app {
       background: white;
       padding: 20px;
@@ -181,6 +186,7 @@
       border-radius: 5px 5px 0 0;
       height: 50px;
     }
+    
     #menuBtn {
       background: #6a11cb;
       color: white;
@@ -298,6 +304,20 @@
       background:#999;
       color:#fff;
     }
+     #topBar {
+  display: flex;
+  justify-content: flex-start; /* يجعل المحتوى يبدأ من اليمين في RTL */
+  align-items: center;
+  height: 50px;
+  padding: 0 15px;
+  background-color: #333;
+}
+
+#logo {
+  height: 3.6%;
+  width: auto;
+  cursor: pointer;
+}
   </style>
 </head>
 <body>
@@ -316,6 +336,10 @@
 
 <!-- قسم التطبيق (المحادثات والرسائل) -->
 <div id="app">
+  
+  <img src="https://raw.githubusercontent.com/T772299420/-/main/IMG-20250810-WA0002.jpg" alt="شعار" id="logo" />
+  <!-- بقية عناصر الشريط -->
+
   <div style="display: flex; flex-direction: column; width: 150px; height: 100%;">
     <div id="menuBar">
       <button id="menuBtn">☰</button>
