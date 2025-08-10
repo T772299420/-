@@ -10,25 +10,26 @@
       direction: rtl;
       text-align: right;
       margin: 0; padding: 0; background: #f0f0f0;
-      display: flex; justify-content: center; align-items: center; height: 100vh;
+      display: flex; justify-content: center; align-items: flex-start; height: 100vh;
     }
     #authContainer, #app {
       background: white;
       padding: 20px;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    #authContainer {
       width: 350px;
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
     #app {
-      margin-top: 50px; /* ارتفاع الشريط العلوي */
-      height: calc(100vh - 50px);
+      display: none;
+      height: calc(100vh - 70px);
       width: 900px;
       flex-direction: row;
       gap: 15px;
-      display: none;
     }
     input, button {
       padding: 10px;
@@ -36,8 +37,8 @@
       border-radius: 5px;
       border: 1px solid #ccc;
       outline: none;
-      width: 100%;
       box-sizing: border-box;
+      width: 100%;
     }
     button {
       cursor: pointer;
@@ -56,102 +57,6 @@
     #username, #status {
       display: none;
     }
-    /* الشريط العلوي */
-    #topBar {
-      position: fixed;
-      top: 0; right: 0; left: 0;
-      height: 50px;
-      background: #6a11cb;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: flex-start; /* زر القائمة على اليمين، اسم المستخدم على يساره */
-      gap: 15px;
-      padding: 0 15px;
-      z-index: 1000;
-      box-sizing: border-box;
-      font-weight: bold;
-      font-size: 16px;
-      direction: rtl;
-    }
-  #menuBtn {
-  background: #6a11cb;
-  color: white;
-  border: none;
-  padding: 6px;
-  font-size: 20px;
-  border-radius: 50px;
-  cursor: pointer;
-  height: 50px;
-  width: 50px;
-  flex-grow: 0;
-  flex-shrink: 0;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-    
-    #usernameDisplay {
-      flex-grow: 1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    /* القائمة المنسدلة */
-    #dropdownMenu {
-      position: fixed;
-      top: 50px;
-      right: 15px;
-      background: white;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      display: none;
-      flex-direction: column;
-      min-width: 180px;
-      z-index: 1001;
-    }
-    #dropdownMenu button {
-  color: #e74c3c;
-  background: transparent;
-  border: none;
-  padding: 10px 15px;
-  text-align: left;    /* النص يبدأ من اليسار */
-  direction: ltr;      /* اتجاه النص من اليسار لليمين */
-  font-weight: 700;
-  font-family: 'Arial Black', Arial, sans-serif;
-  width: 100%;
-  cursor: pointer;
-  font-size: 20px;
-  transition: background-color 0.3s, color 0.3s;
-  border-radius: 0;
-}
-#dropdownMenu button:hover {
-  background-color: #f0f0f0;
-  color: #c0392b; /* لون أغمق عند التمرير */
-}
-    #dropdownMenu button {
-      background: transparent;
-      border: none;
-      text-align: right;
-      padding: 10px 15px;
-      font-size: 16px;
-      cursor: pointer;
-      width: 100%;
-      box-sizing: border-box;
-      transition: background 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-    }
-    #dropdownMenu button:hover {
-      background: #f0f0f0;
-    }
-    #dropdownMenu button:last-child {
-      border-bottom-left-radius: 5px;
-      border-bottom-right-radius: 5px;
-    }
     /* المحادثات */
     #conversationsList {
       width: 250px;
@@ -162,12 +67,24 @@
       height: 100%;
       padding: 10px;
       box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+    }
+    #searchInput {
+      padding: 8px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      box-sizing: border-box;
+      width: 100%;
     }
     .conversation {
       padding: 10px;
       border-bottom: 1px solid #eee;
       cursor: pointer;
       position: relative;
+      user-select: none;
     }
     .conversation:hover {
       background-color: #f7f7f7;
@@ -242,23 +159,146 @@
     #inputArea input {
       flex-grow: 1;
     }
+    #logoutBtn, #deleteAccountBtn {
+      background: #b22222;
+      margin-top: 10px;
+    }
+    #logoutBtn:hover, #deleteAccountBtn:hover {
+      background: #7a1616;
+    }
+    /* زر القائمة المنسدلة */
+    #menuBar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 120px;
+      padding: 10px 15px;
+      background: #6a11cb;
+      color: white;
+      font-weight: bold;
+      border-radius: 5px 5px 0 0;
+      height: 50px;
+    }
+    #menuBtn {
+      background: #6a11cb;
+      color: white;
+      border: none;
+      padding: 6px;
+      font-size: 20px;
+      border-radius: 50px;
+      cursor: pointer;
+      height: 40px;
+      width: 40px;
+      flex-grow: 0;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #usernameDisplay {
+      user-select: none;
+      font-size: 18px;
+      margin-left: 10px;
+    }
+    #dropdownMenu {
+      position: fixed;
+      top: 50px;
+      right: 15px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      display: none;
+      flex-direction: column;
+      min-width: 180px;
+      z-index: 1001;
+    }
+    #dropdownMenu button {
+      color: #e74c3c;
+      background: transparent;
+      border: none;
+      padding: 10px 15px;
+      text-align: right;
+      direction: rtl;
+      font-weight: 700;
+      font-family: 'Arial Black', Arial, sans-serif;
+      width: 100%;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s, color 0.3s;
+      border-radius: 0;
+    }
+    #dropdownMenu button:hover {
+      background-color: #f0f0f0;
+      color: #c0392b;
+    }
+
+    /* مودال تعديل بيانات المستخدم */
+    #editProfileModal {
+      display:none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+    #editProfileModal > div {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      width: 320px;
+      box-sizing: border-box;
+      position: relative;
+    }
+    #editProfileModal h3 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    #editProfileModal label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    #editProfileModal input {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 8px;
+      box-sizing: border-box;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    #editProfileModal button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    #saveProfileBtn {
+      background:#6a11cb;
+      color:white;
+      margin-right: 10px;
+    }
+    #saveProfileBtn:hover {
+      background:#4a07a0;
+    }
+    #cancelProfileBtn {
+      background:#ccc;
+      color:#333;
+    }
+    #cancelProfileBtn:hover {
+      background:#999;
+      color:#fff;
+    }
   </style>
 </head>
 <body>
-
-<!-- الشريط العلوي -->
-<div id="topBar">
-  <button id="menuBtn" aria-haspopup="true" aria-expanded="false">☰</button>
-  <span id="usernameDisplay"></span>
-</div>
-
-<!-- القائمة المنسدلة -->
-<div id="dropdownMenu" role="menu" aria-label="قائمة المستخدم">
-  <button id="editProfileBtn" role="menuitem">تعديل بيانات المستخدم</button>
-  <button id="logoutMenuBtn" role="menuitem">تسجيل الخروج</button>
-  <button id="deleteAccountMenuBtn" role="menuitem">حذف الحساب</button>
-  <button id="aboutAppBtn" role="menuitem">عن التطبيق</button>
-</div>
 
 <!-- قسم تسجيل الدخول / إنشاء حساب -->
 <div id="authContainer">
@@ -274,7 +314,17 @@
 
 <!-- قسم التطبيق (المحادثات والرسائل) -->
 <div id="app">
-  <div id="conversationsList"></div>
+  <div style="display: flex; flex-direction: column; width: 250px; height: 100%;">
+    <div id="menuBar">
+      <button id="menuBtn">☰</button>
+      <div id="usernameDisplay"></div>
+    </div>
+    <div id="conversationsList">
+      <input type="text" id="searchInput" placeholder="ابحث عن مستخدم..." />
+      <!-- قائمة المحادثات -->
+    </div>
+  </div>
+
   <div id="chatWindow">
     <div id="chatHeader">اختر محادثة</div>
     <div id="messages"></div>
@@ -283,8 +333,37 @@
       <button id="sendBtn">إرسال</button>
     </div>
   </div>
+
+  <div id="dropdownMenu" role="menu" aria-hidden="true" aria-labelledby="menuBtn">
+    <button id="editProfileBtn" role="menuitem">تعديل بيانات المستخدم</button>
+    <button id="logoutMenuBtn" role="menuitem">تسجيل الخروج</button>
+    <button id="deleteAccountMenuBtn" role="menuitem">حذف الحساب</button>
+    <button id="aboutAppBtn" role="menuitem">عن التطبيق</button>
+  </div>
 </div>
 
+<!-- نافذة تعديل بيانات المستخدم -->
+<div id="editProfileModal">
+  <div>
+    <h3>تعديل بيانات المستخدم</h3>
+    <label for="editEmail">البريد الإلكتروني (غير قابل للتعديل):</label>
+    <input type="email" id="editEmail" disabled />
+    
+    <label for="editUsername">اسم المستخدم:</label>
+    <input type="text" id="editUsername" />
+    
+    <label for="editStatus">الحالة:</label>
+    <input type="text" id="editStatus" />
+    
+    <div style="text-align: center;">
+      <button id="saveProfileBtn">حفظ</button>
+      <button id="cancelProfileBtn">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- صوت الإشعارات -->
+<audio id="notificationSound" src="https://raw.githubusercontent.com/T772299420/-/main/Sms.mp3" preload="auto"></audio>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -321,21 +400,34 @@
   const messageInput = document.getElementById('messageInput');
   const sendBtn = document.getElementById('sendBtn');
   const inputArea = document.getElementById('inputArea');
-
-  // عناصر القائمة العلوية
   const menuBtn = document.getElementById('menuBtn');
   const dropdownMenu = document.getElementById('dropdownMenu');
+  const usernameDisplay = document.getElementById('usernameDisplay');
   const editProfileBtn = document.getElementById('editProfileBtn');
   const logoutMenuBtn = document.getElementById('logoutMenuBtn');
   const deleteAccountMenuBtn = document.getElementById('deleteAccountMenuBtn');
   const aboutAppBtn = document.getElementById('aboutAppBtn');
-  const usernameDisplay = document.getElementById('usernameDisplay');
+  const searchInput = document.getElementById('searchInput');
+
+  // مودال تعديل الملف الشخصي
+  const editProfileModal = document.getElementById('editProfileModal');
+  const editEmailInput = document.getElementById('editEmail');
+  const editUsernameInput = document.getElementById('editUsername');
+  const editStatusInput = document.getElementById('editStatus');
+  const saveProfileBtn = document.getElementById('saveProfileBtn');
+  const cancelProfileBtn = document.getElementById('cancelProfileBtn');
 
   let isLogin = true;
   let currentChatEmail = null;
   let currentChatUserData = null;
   let unsubscribeMessages = null;
   const unreadCounts = new Map();
+
+  // متغير لمتابعة آخر رسالة لتشغيل صوت الإشعار مرة واحدة فقط
+  let lastMessageId = null;
+
+  // عنصر صوت الإشعارات
+  const notificationSound = document.getElementById('notificationSound');
 
   // تبديل بين تسجيل الدخول وإنشاء حساب
   toggleFormBtn.addEventListener('click', () => {
@@ -396,260 +488,307 @@
     if (user) {
       authContainer.style.display = 'none';
       appDiv.style.display = 'flex';
-
-      // جلب اسم المستخدم للعرض في الشريط العلوي
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-      if (userDoc.exists()) {
-        usernameDisplay.textContent = userDoc.data().username || user.email;
-      } else {
-        usernameDisplay.textContent = user.email;
-      }
-
       await loadConversations();
       listenUnreadMessages();
+
+      // عرض اسم المستخدم في الشريط العلوي
+      const userDoc = await getDocs(query(collection(db, "users"), where("email", "==", user.email)));
+      userDoc.forEach(docSnap => {
+        const data = docSnap.data();
+        usernameDisplay.textContent = data.username || user.email;
+      });
+
     } else {
       authContainer.style.display = 'flex';
       appDiv.style.display = 'none';
       clearChat();
-      usernameDisplay.textContent = '';
       if (unsubscribeMessages) unsubscribeMessages();
+      usernameDisplay.textContent = '';
+      dropdownMenu.style.display = 'none';
+      searchInput.value = '';
+      unreadCounts.clear();
+      lastMessageId = null;
     }
   });
 
-  // تحميل قائمة المحادثات (المستخدمين)
+  // تحميل قائمة المحادثات (كل المستخدمين ما عدا المستخدم الحالي)
   async function loadConversations() {
-    conversationsList.innerHTML = '';
+    conversationsList.querySelectorAll('.conversation').forEach(c => c.remove());
     const usersSnapshot = await getDocs(collection(db, "users"));
+    const currentUser = auth.currentUser;
     usersSnapshot.forEach(docSnap => {
       const userData = docSnap.data();
-      if (auth.currentUser && userData.email !== auth.currentUser.email) {
-        const div = document.createElement('div');
-        div.classList.add('conversation');
-        div.textContent = userData.username || userData.email;
-        div.dataset.email = userData.email;
-
-        const unreadBadge = document.createElement('span');
-        unreadBadge.classList.add('unread-badge');
-        div.appendChild(unreadBadge);
-
-        div.addEventListener('click', () => {
-          openChat(userData.email, userData);
-        });
-
-        conversationsList.appendChild(div);
+      if (userData.email !== currentUser.email) {
+        addConversationToList(userData);
       }
     });
   }
 
-  // توليد معرف المحادثة بين مستخدمين (بترتيب)
-  function getChatId(email1, email2) {
-    return [email1, email2].sort().join("_");
-  }
+  // إضافة محادثة لقائمة المحادثات
+  function addConversationToList(userData) {
+    const convDiv = document.createElement('div');
+    convDiv.classList.add('conversation');
+    convDiv.textContent = userData.username || userData.email;
+    convDiv.title = userData.status || "";
+    convDiv.dataset.email = userData.email;
 
-  // فتح محادثة مع مستخدم مع تعديل وضع الرسائل كمقروءة
-  async function markMessagesAsRead(chatId, senderEmail) {
-    const messagesRef = collection(db, "chats", chatId, "messages");
-    const q = query(messagesRef, where("sender", "==", senderEmail), where("read", "==", false));
-    const snapshot = await getDocs(q);
-    snapshot.forEach(async docSnap => {
-      await setDoc(doc(db, "chats", chatId, "messages", docSnap.id), { read: true }, { merge: true });
+    // شارة عدد الرسائل غير المقروءة
+    const badge = document.createElement('span');
+    badge.classList.add('unread-badge');
+    convDiv.appendChild(badge);
+
+    convDiv.addEventListener('click', () => {
+      openChat(userData.email, userData);
     });
+
+    conversationsList.appendChild(convDiv);
   }
 
-  function openChat(email, userData) {
+  // فتح محادثة
+  async function openChat(email, userData) {
     currentChatEmail = email;
     currentChatUserData = userData;
-    chatHeader.textContent = `محادثة مع ${userData.username || email}`;
+    chatHeader.textContent = userData.username || email;
     messagesDiv.innerHTML = '';
     inputArea.style.display = 'flex';
+    clearUnreadCount(email);
+
     if (unsubscribeMessages) unsubscribeMessages();
 
-    const chatId = getChatId(auth.currentUser.email, email);
-    const messagesRef = collection(db, "chats", chatId, "messages");
-    const q = query(messagesRef, orderBy("timestamp"));
-    unsubscribeMessages = onSnapshot(q, snapshot => {
+    // استماع للرسائل بين المستخدم الحالي والمختار
+    const currentUserEmail = auth.currentUser.email;
+    const messagesRef = collection(db, "messages");
+    const messagesQuery = query(messagesRef,
+      orderBy("timestamp"));
+
+    unsubscribeMessages = onSnapshot(messagesQuery, snapshot => {
       messagesDiv.innerHTML = '';
       snapshot.forEach(docSnap => {
         const msg = docSnap.data();
-        displayMessage(msg);
+        if (
+          (msg.from === currentUserEmail && msg.to === email) ||
+          (msg.from === email && msg.to === currentUserEmail)
+        ) {
+          appendMessage(msg);
+        } else if (msg.to === currentUserEmail && msg.from === email && !msg.read) {
+          // وسم الرسالة كمقروءة
+          markMessageAsRead(docSnap.id);
+        }
       });
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      scrollMessagesToBottom();
     });
-
-    // تعيين الرسائل كمقروءة عند فتح المحادثة
-    markMessagesAsRead(chatId, email);
-
-    unreadCounts.set(email, 0);
-    updateUnreadUI();
   }
 
-  // عرض رسالة في نافذة المحادثة
-  function displayMessage(msg) {
+  // إظهار رسالة في نافذة الدردشة
+  function appendMessage(msg) {
     const div = document.createElement('div');
     div.classList.add('message');
-    div.classList.add(msg.sender === auth.currentUser.email ? 'sent' : 'received');
+    div.classList.add(msg.from === auth.currentUser.email ? 'sent' : 'received');
     div.textContent = msg.text;
 
-    const time = document.createElement('div');
-    time.classList.add('time');
-    time.textContent = msg.timestamp?.toDate().toLocaleTimeString() || '';
-    div.appendChild(time);
+    const timeSpan = document.createElement('div');
+    timeSpan.classList.add('time');
+    const date = msg.timestamp ? msg.timestamp.toDate() : new Date();
+    timeSpan.textContent = date.toLocaleTimeString('ar-EG', {hour: '2-digit', minute: '2-digit'});
 
+    div.appendChild(timeSpan);
     messagesDiv.appendChild(div);
+
+    // تشغيل صوت الإشعار للرسائل المستلمة الجديدة فقط
+    if (msg.from !== auth.currentUser.email && doc.id !== lastMessageId) {
+      notificationSound.play();
+      lastMessageId = doc.id;
+    }
   }
 
-  // إرسال رسالة مع إضافة خاصية read:false وعرضها فوراً
-  sendBtn.addEventListener('click', sendMessage);
-  messageInput.addEventListener('keypress', e => {
-    if (e.key === 'Enter') sendMessage();
-  });
+  // التمرير لنهاية الرسائل تلقائيًا
+  function scrollMessagesToBottom() {
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
 
-  async function sendMessage() {
+  // إرسال رسالة جديدة
+  sendBtn.addEventListener('click', async () => {
     const text = messageInput.value.trim();
     if (!text || !currentChatEmail) return;
+    const currentUserEmail = auth.currentUser.email;
+    try {
+      await addDoc(collection(db, "messages"), {
+        from: currentUserEmail,
+        to: currentChatEmail,
+        text,
+        timestamp: serverTimestamp(),
+        read: false,
+      });
+      messageInput.value = '';
+    } catch (e) {
+      alert('حدث خطأ أثناء إرسال الرسالة.');
+    }
+  });
 
-    const chatId = getChatId(auth.currentUser.email, currentChatEmail);
-    const messagesRef = collection(db, "chats", chatId, "messages");
-
-    // عرض الرسالة فوراً (تجربة مستخدم أفضل)
-    displayMessage({
-      sender: auth.currentUser.email,
-      text,
-      timestamp: { toDate: () => new Date() }
-    });
-
-    messageInput.value = '';
-
-    await addDoc(messagesRef, {
-      sender: auth.currentUser.email,
-      text,
-      timestamp: serverTimestamp(),
-      read: false
-    });
+  // علامة الرسالة كمقروءة
+  async function markMessageAsRead(messageId) {
+    const msgDoc = doc(db, "messages", messageId);
+    await setDoc(msgDoc, { read: true }, { merge: true });
+    clearUnreadCount(currentChatEmail);
   }
 
-  // الاستماع لرسائل غير مقروءة لتحديث عداد الإشعارات
-  
+  // الاستماع للرسائل غير المقروءة لتحديث شارات التنبيه
   function listenUnreadMessages() {
-    const usersRef = collection(db, "users");
-    onSnapshot(usersRef, snapshot => {
-      snapshot.forEach(userDoc => {
-        const userData = userDoc.data();
-        if (auth.currentUser && userData.email !== auth.currentUser.email) {
-          const chatId = getChatId(auth.currentUser.email, userData.email);
-          const messagesRef = collection(db, "chats", chatId, "messages");
+    const currentUserEmail = auth.currentUser.email;
+    const messagesRef = collection(db, "messages");
+    const unreadQuery = query(messagesRef, where("to", "==", currentUserEmail), where("read", "==", false));
 
-          const q = query(messagesRef, where("sender", "==", userData.email), where("read", "==", false));
+    onSnapshot(unreadQuery, snapshot => {
+      // تحديث عداد الرسائل لكل محادثة
+      const counts = {};
+      snapshot.forEach(docSnap => {
+        const msg = docSnap.data();
+        counts[msg.from] = (counts[msg.from] || 0) + 1;
+      });
 
-          onSnapshot(q, snapshot => {
-            if (!currentChatEmail || currentChatEmail !== userData.email) {
-              const count = snapshot.size;
-              if (count > 0) {
-                unreadCounts.set(userData.email, count);
-              } else {
-                unreadCounts.set(userData.email, 0);
-              }
-            }
-            updateUnreadUI();
-          });
+      // تحديث الواجهة
+      document.querySelectorAll('.conversation').forEach(conv => {
+        const email = conv.dataset.email;
+        const badge = conv.querySelector('.unread-badge');
+        if (counts[email]) {
+          badge.textContent = counts[email];
+          badge.style.display = 'inline-block';
+        } else {
+          badge.style.display = 'none';
         }
       });
     });
   }
 
-  function updateUnreadUI() {
-    const conversationDivs = document.querySelectorAll('.conversation');
-    conversationDivs.forEach(div => {
-      const email = div.dataset.email;
-      const badge = div.querySelector('.unread-badge');
-      const count = unreadCounts.get(email) || 0;
-      if (count > 0) {
-        badge.textContent = count;
-        badge.style.display = 'inline-block';
-      } else {
-        badge.style.display = 'none';
-      }
-    });
+  // مسح عداد الرسائل غير المقروءة
+  function clearUnreadCount(email) {
+    const convDiv = [...conversationsList.children].find(c => c.dataset.email === email);
+    if (!convDiv) return;
+    const badge = convDiv.querySelector('.unread-badge');
+    badge.style.display = 'none';
   }
 
+  // مسح المحادثة عند تسجيل الخروج
   function clearChat() {
+    messagesDiv.innerHTML = '';
+    chatHeader.textContent = 'اختر محادثة';
+    inputArea.style.display = 'none';
     currentChatEmail = null;
     currentChatUserData = null;
-    chatHeader.textContent = 'اختر محادثة';
-    messagesDiv.innerHTML = '';
-    inputArea.style.display = 'none';
-    unreadCounts.clear();
-    updateUnreadUI();
   }
 
-  // القائمة المنسدلة - إظهار وإخفاء
+  // زر القائمة العلوية
   menuBtn.addEventListener('click', () => {
-    const isExpanded = menuBtn.getAttribute('aria-expanded') === 'true';
-    if (isExpanded) {
+    if (dropdownMenu.style.display === 'flex') {
       dropdownMenu.style.display = 'none';
-      menuBtn.setAttribute('aria-expanded', 'false');
+      dropdownMenu.setAttribute('aria-hidden', 'true');
     } else {
       dropdownMenu.style.display = 'flex';
-      menuBtn.setAttribute('aria-expanded', 'true');
+      dropdownMenu.setAttribute('aria-hidden', 'false');
     }
   });
 
   // إغلاق القائمة عند النقر خارجها
-  document.addEventListener('click', (e) => {
-    if (!dropdownMenu.contains(e.target) && e.target !== menuBtn) {
+  document.addEventListener('click', e => {
+    if (!menuBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
       dropdownMenu.style.display = 'none';
-      menuBtn.setAttribute('aria-expanded', 'false');
+      dropdownMenu.setAttribute('aria-hidden', 'true');
     }
-  });
-
-  // زر تعديل بيانات المستخدم (تفتح نموذج أو alert مؤقت)
-  editProfileBtn.addEventListener('click', async () => {
-    dropdownMenu.style.display = 'none';
-    menuBtn.setAttribute('aria-expanded', 'false');
-
-    // هنا يمكنك فتح نموذج تعديل بيانات - للمثال عرض alert
-    alert('هنا يمكنك فتح نموذج تعديل بيانات المستخدم.');
   });
 
   // زر تسجيل الخروج
   logoutMenuBtn.addEventListener('click', async () => {
-    dropdownMenu.style.display = 'none';
-    menuBtn.setAttribute('aria-expanded', 'false');
-    if (unsubscribeMessages) unsubscribeMessages();
     await signOut(auth);
   });
 
   // زر حذف الحساب
   deleteAccountMenuBtn.addEventListener('click', async () => {
-    dropdownMenu.style.display = 'none';
-    menuBtn.setAttribute('aria-expanded', 'false');
-    if (!confirm('هل أنت متأكد أنك تريد حذف الحساب نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.')) {
-      return;
-    }
-    try {
-      const user = auth.currentUser;
-      if (user && user.uid) {
-        const userDocRef = doc(db, "users", user.uid);
-        await deleteDoc(userDocRef);
-      }
-      await deleteUser(auth.currentUser);
-      alert('تم حذف الحساب بنجاح.');
-      location.reload();
-    } catch (error) {
-      if (error.code === 'auth/requires-recent-login') {
-        alert('يجب إعادة تسجيل الدخول قبل حذف الحساب.');
-      } else {
-        alert('حدث خطأ أثناء حذف الحساب.');
+    if (!confirm('هل أنت متأكد من حذف حسابك؟ هذا الإجراء لا يمكن التراجع عنه.')) return;
+    const user = auth.currentUser;
+    if (user) {
+      try {
+        // حذف بيانات المستخدم من Firestore
+        await deleteDoc(doc(db, "users", user.uid));
+        // حذف حساب Firebase Authentication
+        await deleteUser(user);
+        alert('تم حذف الحساب بنجاح.');
+      } catch (e) {
+        alert('حدث خطأ أثناء حذف الحساب. حاول تسجيل الخروج وإعادة الدخول.');
       }
     }
   });
 
-  // زر عن التطبيق
-  aboutAppBtn.addEventListener('click', () => {
-    dropdownMenu.style.display = 'none';
-    menuBtn.setAttribute('aria-expanded', 'false');
-    alert('تطبيق دردشة فورية تم تطويره باستخدام Firebase و JavaScript.');
+  // زر تعديل بيانات المستخدم
+  editProfileBtn.addEventListener('click', async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const userDocRef = doc(db, "users", user.uid);
+    const userDocSnap = await getDoc(userDocRef);
+    if (userDocSnap.exists()) {
+      const data = userDocSnap.data();
+      editEmailInput.value = user.email;
+      editUsernameInput.value = data.username || '';
+      editStatusInput.value = data.status || '';
+      editProfileModal.style.display = 'flex';
+    }
   });
+
+  // حفظ تعديل البيانات
+  saveProfileBtn.addEventListener('click', async () => {
+    const newUsername = editUsernameInput.value.trim();
+    const newStatus = editStatusInput.value.trim();
+
+    if (!newUsername) {
+      alert('الرجاء إدخال اسم المستخدم.');
+      return;
+    }
+
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+      const userDocRef = doc(db, "users", user.uid);
+      await setDoc(userDocRef, {
+        username: newUsername,
+        status: newStatus,
+        photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(newUsername)}&background=6a11cb&color=fff&rounded=true&size=128`
+      }, { merge: true });
+
+      usernameDisplay.textContent = newUsername;
+
+      // تحديث قائمة المحادثات
+      await loadConversations();
+
+      editProfileModal.style.display = 'none';
+    } catch (e) {
+      alert('حدث خطأ أثناء حفظ البيانات.');
+    }
+  });
+
+  // إلغاء تعديل البيانات
+  cancelProfileBtn.addEventListener('click', () => {
+    editProfileModal.style.display = 'none';
+  });
+
+  // زر "عن التطبيق"
+  aboutAppBtn.addEventListener('click', () => {
+    alert('تطبيق دردشة فورية مبني باستخدام Firebase وJavaScript.\n\nتم تطويره لمروان.');
+  });
+
+  // البحث في قائمة المحادثات
+  searchInput.addEventListener('input', () => {
+    const filter = searchInput.value.toLowerCase();
+    document.querySelectorAll('.conversation').forEach(conv => {
+      const text = conv.textContent.toLowerCase();
+      if (text.includes(filter)) {
+        conv.style.display = 'block';
+      } else {
+        conv.style.display = 'none';
+      }
+    });
+  });
+
 </script>
 
 </body>
