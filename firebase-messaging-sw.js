@@ -13,28 +13,21 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// معالج الرسائل في الخلفية
 messaging.onBackgroundMessage((payload) => {
-  console.log('رسالة في الخلفية:', payload);
+  console.log('رسالة FCM في الخلفية:', payload);
   
   const notificationTitle = payload.notification?.title || 'رسالة جديدة';
   const notificationOptions = {
-    body: payload.notification?.body || '',
+    body: payload.notification?.body || 'لديك رسالة جديدة في ChatPro',
     icon: '/icon-192x192.png',
     badge: '/icon-72x72.png',
     tag: 'chat-message',
     requireInteraction: true,
-    actions: [
-      {
-        action: 'reply',
-        title: 'رد',
-        icon: '/reply-icon.png'
-      },
-      {
-        action: 'view',
-        title: 'عرض',
-        icon: '/view-icon.png'
-      }
-    ]
+    data: {
+      url: payload.data?.url || '/',
+      fromUid: payload.data?.fromUid
+    }
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions);
@@ -43,16 +36,37 @@ messaging.onBackgroundMessage((payload) => {
 // معالجة النقر على الإشعار
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  
-  if (event.action === 'reply') {
-    // فتح نافذة الرد
-    event.waitUntil(
-      clients.openWindow('/?action=reply&from=' + event.notification.data?.from)
-    );
-  } else {
-    // فتح التطبيق
-    event.waitUntil(
-      clients.openWindow('/')
-    );
-  }
+
+  const urlToOpen = event.notification.data?.url || '/';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then((windowClients) => {
+        let clientToFocus = null;
+        for (let i = 0; i < windowClients.length; i++) {
+          const client = windowClients[i];
+          if (client.url.includes(urlToOpen) && 'focus' in client) {
+            clientToFocus = client;
+            break;
+          }
+        }
+
+        if (clientToFocus) {
+          return clientToFocus.focus();
+        } else {
+          return clients.openWindow(urlToOpen);
+        }
+      })
+  );
+});
+
+// تثبيت وتفعيل Service Worker
+self.addEventListener('install', (event) => {
+  console.log('Service Worker: تثبيت');
+  event.waitUntil(self.skipWaiting());
+});
+
+self.addEventListener('activate', (event) => {
+  console.log('Service Worker: تفعيل');
+  event.waitUntil(self.clients.claim());
 });
