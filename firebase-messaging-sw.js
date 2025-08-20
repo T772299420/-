@@ -1,72 +1,55 @@
-// firebase-messaging-sw.js
-importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
+// app.js
 
-firebase.initializeApp({
+// 1️⃣ تهيئة Firebase
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
+
+const firebaseConfig = {
   apiKey: "AIzaSyAm0hh9I6i58ywW1D2gZg09liG-wG-tBsU",
   authDomain: "chat-fat-4f082.firebaseapp.com",
   projectId: "chat-fat-4f082",
   storageBucket: "chat-fat-4f082.appspot.com",
   messagingSenderId: "297367474930",
   appId: "1:297367474930:web:a05b983e05a0ba257fb66b"
-});
+};
 
-const messaging = firebase.messaging();
+const app = initializeApp(firebaseConfig);
+const messaging = getMessaging(app);
 
-// معالج الرسائل في الخلفية
-messaging.onBackgroundMessage((payload) => {
-  console.log('رسالة FCM في الخلفية:', payload);
-  
-  const notificationTitle = payload.notification?.title || 'رسالة جديدة';
-  const notificationOptions = {
-    body: payload.notification?.body || 'لديك رسالة جديدة في ChatPro',
-    icon: '/icon-192x192.png',
-    badge: '/icon-72x72.png',
-    tag: 'chat-message',
-    requireInteraction: true,
-    data: {
-      url: payload.data?.url || '/',
-      fromUid: payload.data?.fromUid
-    }
-  };
+// 2️⃣ تسجيل Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/firebase-messaging-sw.js')
+    .then((registration) => {
+      console.log('✅ Service Worker مسجل:', registration);
+    })
+    .catch((err) => {
+      console.error('❌ فشل تسجيل Service Worker:', err);
+    });
+}
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
-});
-
-// معالجة النقر على الإشعار
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-
-  const urlToOpen = event.notification.data?.url || '/';
-
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true })
-      .then((windowClients) => {
-        let clientToFocus = null;
-        for (let i = 0; i < windowClients.length; i++) {
-          const client = windowClients[i];
-          if (client.url.includes(urlToOpen) && 'focus' in client) {
-            clientToFocus = client;
-            break;
-          }
-        }
-
-        if (clientToFocus) {
-          return clientToFocus.focus();
+// 3️⃣ طلب إذن الإشعارات والحصول على FCM Token
+Notification.requestPermission().then((permission) => {
+  if (permission === 'granted') {
+    console.log('👍 تم السماح بالإشعارات');
+    getToken(messaging, { vapidKey: 'wf0M42ddJDLMSFkMst6y8iVaYM5_pk2mJHGG8LRiWhw' })
+      .then((currentToken) => {
+        if (currentToken) {
+          console.log('🔑 FCM Token:', currentToken);
+          // هنا يمكن إرسال التوكن إلى السيرفر لتلقي الإشعارات لاحقًا
         } else {
-          return clients.openWindow(urlToOpen);
+          console.log('⚠️ لم يتم الحصول على توكن FCM، تأكد من السماح بالإشعارات');
         }
       })
-  );
+      .catch((err) => {
+        console.error('❌ خطأ أثناء الحصول على توكن FCM:', err);
+      });
+  } else {
+    console.warn('⚠️ تم رفض الإشعارات من قبل المستخدم');
+  }
 });
 
-// تثبيت وتفعيل Service Worker
-self.addEventListener('install', (event) => {
-  console.log('Service Worker: تثبيت');
-  event.waitUntil(self.skipWaiting());
-});
-
-self.addEventListener('activate', (event) => {
-  console.log('Service Worker: تفعيل');
-  event.waitUntil(self.clients.claim());
+// 4️⃣ الاستماع للرسائل أثناء فتح الصفحة
+onMessage(messaging, (payload) => {
+  console.log('💬 رسالة FCM أثناء فتح الصفحة:', payload);
+  // يمكنك هنا عرض إشعار داخل الصفحة أو تحديث واجهة المستخدم
 });
