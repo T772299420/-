@@ -3,373 +3,848 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>دردشة فورية</title>
+  <title>💬 دردشة فورية - ChatPro</title>
+  <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiQ2hhdFBybyIsInNob3J0X25hbWUiOiJDaGF0UHJvIiwic3RhcnRfdXJsIjoiLyIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiM2YTExY2IiLCJ0aGVtZV9jb2xvciI6IiM2YTExY2IiLCJpY29ucyI6W3sic3JjIjoiZGF0YTppbWFnZS9zdmcreG1sO2Jhc2U2NCxQSE4yWnlCM2FXUjBhRDBpTWpRd0lpQm9aV2xuYUhROUlqSTBNQ0lpSUhacFpYZENiM2c5SWpBZ01DQXlOREFnTWpRd0lpQm1hV3hzUFNJaU5tRXhNV05pSWo0OGNtVmpkQ0IzYVdSMGFEMGlNalF3SWlCb1pXbG5hSFE5SWpJME1DSWdabWxzYkQwaWQyaHBkR1VpTHo0OGRHVjRkQ0I0UFNJeE1qQWlJSGs5SWpFeU1DSWdabTl1ZEMxbVlXMXBiSGs5SWtGeWFXRnNJaUJtYjI1MExYTnBlbVU5SWpNd0lpQm1hV3hzUFNJaU5tRXhNV05pSWo0Z1EyaGhkRkJ5Ynp3dmRHVjRkRDQ4TDNOMlp6ND0iLCJzaXplcyI6IjE5MngxOTIiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCJ9XX0=">
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       direction: rtl;
       text-align: right;
-      margin: 0; padding: 0; background: #f0f0f0;
-      display: flex; justify-content: center; align-items: flex-start; height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      height: 100vh;
+      overflow: hidden;
     }
-    #authContainer, #app {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
+
+    /* شاشة تسجيل الدخول */
     #authContainer {
-      width: 350px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      width: 400px;
+      z-index: 1000;
     }
-    #app {
-      display: none;
-      height: calc(100vh - 70px);
-      width: 900px;
-      flex-direction: row;
-      gap: 15px;
+
+    #authContainer h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #6a11cb;
+      font-size: 28px;
     }
+
     input, button {
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      outline: none;
-      box-sizing: border-box;
       width: 100%;
+      padding: 15px;
+      margin: 10px 0;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: all 0.3s ease;
     }
+
+    input:focus {
+      border-color: #6a11cb;
+      outline: none;
+      box-shadow: 0 0 10px rgba(106, 17, 203, 0.2);
+    }
+
     button {
-      cursor: pointer;
-      background: #6a11cb;
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
       color: white;
       border: none;
-      transition: background 0.3s ease;
+      cursor: pointer;
+      font-weight: bold;
+      text-transform: uppercase;
     }
+
     button:hover {
-      background: #4a07a0;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(106, 17, 203, 0.3);
     }
+
+    #toggleFormBtn {
+      background: transparent;
+      color: #6a11cb;
+      border: 2px solid #6a11cb;
+    }
+
     #errorMsg {
-      color: red;
+      color: #e74c3c;
+      text-align: center;
       min-height: 20px;
+      font-weight: bold;
     }
-    #username, #status {
+
+    /* التطبيق الرئيسي */
+    #app {
+      display: none;
+      height: 100vh;
+      background: white;
+    }
+
+    /* شريط التطبيق العلوي */
+    #appHeader {
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    #appLogo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    #appLogo::before {
+      content: "💬";
+      font-size: 30px;
+    }
+
+    #userInfo {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    #userAvatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid white;
+    }
+
+    #menuBtn {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    /* قائمة المستخدمين */
+    #usersListContainer {
+      width: 100%;
+      height: calc(100vh - 70px);
+      background: #f8f9fa;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    #searchContainer {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    #searchInput {
+      width: 100%;
+      padding: 15px 50px 15px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 25px;
+      font-size: 16px;
+      background: white;
+    }
+
+    #searchInput::placeholder {
+      color: #999;
+    }
+
+    #searchContainer::after {
+      content: "🔍";
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 18px;
+    }
+
+    .user-card {
+      background: white;
+      border-radius: 15px;
+      padding: 15px;
+      margin: 10px 0;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      position: relative;
+    }
+
+    .user-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    .user-card.blocked {
+      opacity: 0.5;
+      background: #ffebee;
+    }
+
+    .user-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      position: relative;
+    }
+
+    .online-indicator {
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      width: 12px;
+      height: 12px;
+      background: #4caf50;
+      border: 2px solid white;
+      border-radius: 50%;
       display: none;
     }
-    /* المحادثات */
-    #conversationsList {
-      width: 150px;
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      overflow-y: auto;
-      height: 100%;
-      padding: 10px;
-      box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
+
+    .online-indicator.online {
+      display: block;
     }
-    #searchInput {
-      padding: 8px;
-      margin-bottom: 10px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
+
+    .user-info h4 {
+      margin: 0;
+      color: #333;
       font-size: 16px;
-      box-sizing: border-box;
-      width: 100%;
     }
-    .conversation {
-      padding: 1px;
-      border-bottom: 1px solid #eee;
-      cursor: pointer;
-      position: relative;
-      user-select: none;
+
+    .user-status {
+      color: #666;
+      font-size: 14px;
+      margin-top: 2px;
     }
-    .conversation:hover {
-      background-color: #f7f7f7;
+
+    .last-seen {
+      color: #999;
+      font-size: 12px;
+      margin-top: 2px;
     }
-    .unread-badge {
+
+    .unread-count {
       position: absolute;
       top: 10px;
       left: 10px;
-      background: red;
+      background: #e74c3c;
       color: white;
       border-radius: 50%;
-      font-size: 12px;
-      padding: 2px 7px;
+      width: 20px;
+      height: 20px;
       display: none;
-    }
-    /* نافذة المحادثة */
-    #chatWindow {
-      flex-grow: 1;
-      display: flex;
-      flex-direction: column;
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      height: 100%;
-      
-    }
-    #chatHeader {
-      padding: 15px;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
       font-weight: bold;
-      border-bottom: 1px solid #ddd;
-      background: #6a11cb;
-      color: white;
-      font-size: 18px;
     }
-    #messages {
-      flex-grow: 1;
-      padding: 10px;
-      overflow-y: auto;
+
+    .unread-count.show {
       display: flex;
+    }
+
+    /* شاشة المحادثة */
+    #chatContainer {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: white;
+      z-index: 1000;
       flex-direction: column;
-      gap: 10px;
-      background: #f9f9f9;
     }
-    .message {
-      max-width: 100%;
-      padding: 10px;
-      border-radius: 10px;
-      position: relative;
-      word-wrap: break-word;
-      
-    }
-    .sent {
-      background-color: #dcf8c6;
-      align-self: flex-end;
-    }
-    .received {
-      background-color: #fff;
-      align-self: flex-start;
-      border: 1px solid #ddd;
-    }
-    .time {
-      font-size: 10px;
-      color: gray;
-      margin-top: 4px;
-      text-align: left;
-    }
-    #inputArea {
+
+    #chatHeader {
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+      color: white;
+      padding: 15px 20px;
       display: flex;
-      padding: 10px;
-      border-top: 1px solid #ddd;
-      gap: 10px;
-      background: #fff;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
-    #inputArea input {
-      flex-grow: 1;
-    }
-    #logoutBtn, #deleteAccountBtn {
-      background: #b22222;
-      margin-top: 10px;
-    }
-    #logoutBtn:hover, #deleteAccountBtn:hover {
-      background: #7a1616;
-    }
-    /* زر القائمة المنسدلة */
-    #menuBar {
+
+    #chatUserInfo {
       display: flex;
       align-items: center;
-      justify-content: flex-end;
-      gap: 50px;
-      padding: 10px 15px;
-      background: #6a11cb;
-      color: white;
-      font-weight: bold;
-      border-radius: 5px 5px 0 0;
-      height: 50px;
+      gap: 15px;
     }
-    #menuBtn {
+
+    #chatUserAvatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid white;
+      position: relative;
+    }
+
+    #chatUserName {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    #chatUserStatus {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+    #chatControls {
+      display: flex;
+      gap: 10px;
+    }
+
+    .chat-btn {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    #backBtn {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    /* منطقة الرسائل */
+    #messagesArea {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+    }
+
+    .message-wrapper {
+      display: flex;
+      margin: 10px 0;
+      position: relative;
+    }
+
+    .message-wrapper.sent {
+      justify-content: flex-end;
+    }
+
+    .message-wrapper.received {
+      justify-content: flex-start;
+    }
+
+    .message {
+      max-width: 70%;
+      padding: 12px 16px;
+      border-radius: 18px;
+      position: relative;
+      word-wrap: break-word;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .message.sent {
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+      color: white;
+      border-bottom-right-radius: 5px;
+    }
+
+    .message.received {
+      background: white;
+      color: #333;
+      border: 1px solid #e0e0e0;
+      border-bottom-left-radius: 5px;
+    }
+
+    .message-time {
+      font-size: 11px;
+      opacity: 0.7;
+      margin-top: 5px;
+      text-align: left;
+    }
+
+    .message-media {
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+      margin-bottom: 5px;
+    }
+
+    .message-media img,
+    .message-media video {
+      width: 100%;
+      max-width: 300px;
+      height: auto;
+      border-radius: 10px;
+    }
+
+    .media-loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 10px;
+      border-radius: 50%;
+      font-size: 20px;
+    }
+
+    .message-options {
+      position: absolute;
+      top: 0;
+      left: -30px;
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .message-wrapper:hover .message-options {
+      display: flex;
+    }
+
+    .message-option {
+      background: rgba(0,0,0,0.7);
+      color: white;
+      border: none;
+      padding: 5px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 12px;
+      width: 25px;
+      height: 25px;
+    }
+
+    /* منطقة الإدخال */
+    #inputContainer {
+      background: white;
+      padding: 15px 20px;
+      border-top: 1px solid #e0e0e0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #messageInput {
+      flex: 1;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 25px;
+      font-size: 16px;
+      resize: none;
+      max-height: 100px;
+    }
+
+    .input-btn {
       background: #6a11cb;
       color: white;
       border: none;
-      padding: 6px;
-      font-size: 20px;
-      border-radius: 50px;
+      padding: 12px;
+      border-radius: 50%;
       cursor: pointer;
-      height: 40px;
-      width: 40px;
-      flex-grow: 0;
-      flex-shrink: 0;
-      box-sizing: border-box;
+      font-size: 18px;
+      width: 45px;
+      height: 45px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
-    #usernameDisplay {
-      user-select: none;
-      font-size: 18px;
-      margin-left: 10px;
-    }
-    #dropdownMenu {
-      position: fixed;
-      top: 50px;
-      right: 15px;
-      background: white;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      display: none;
-      flex-direction: column;
-      min-width: 180px;
-      z-index: 1001;
-    }
-    #dropdownMenu button {
-      color: #e74c3c;
-      background: transparent;
-      border: none;
-      padding: 10px 15px;
-      text-align: right;
-      direction: rtl;
-      font-weight: 700;
-      font-family: 'Arial Black', Arial, sans-serif;
-      width: 100%;
-      cursor: pointer;
-      font-size: 16px;
-      transition: background-color 0.3s, color 0.3s;
-      border-radius: 0;
-    }
-    #dropdownMenu button:hover {
-      background-color: #f0f0f0;
-      color: #c0392b;
+
+    .input-btn:hover {
+      background: #2575fc;
     }
 
-    /* مودال تعديل بيانات المستخدم */
-    #editProfileModal {
-      display:none;
+    /* القوائم المنسدلة */
+    #dropdownMenu {
       position: fixed;
-      top: 0; left: 0;
-      width: 100vw;
-      height: 100vh;
+      top: 70px;
+      right: 20px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      display: none;
+      flex-direction: column;
+      min-width: 200px;
+      z-index: 2000;
+      overflow: hidden;
+    }
+
+    .dropdown-item {
+      padding: 15px 20px;
+      border: none;
+      background: transparent;
+      text-align: right;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .dropdown-item:hover {
+      background: #f8f9fa;
+    }
+
+    .dropdown-item.danger {
+      color: #e74c3c;
+    }
+
+    .dropdown-item.danger:hover {
+      background: #ffebee;
+    }
+
+    /* المودال */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       background: rgba(0,0,0,0.5);
       justify-content: center;
       align-items: center;
-      z-index: 2000;
+      z-index: 3000;
     }
-    #editProfileModal > div {
+
+    .modal-content {
       background: white;
-      border-radius: 8px;
-      padding: 20px;
-      width: 320px;
-      box-sizing: border-box;
+      border-radius: 20px;
+      padding: 30px;
+      width: 90%;
+      max-width: 400px;
       position: relative;
     }
-    #editProfileModal h3 {
-      margin-top: 0;
-      margin-bottom: 15px;
+
+    .modal h3 {
+      margin-bottom: 20px;
       text-align: center;
+      color: #333;
     }
-    #editProfileModal label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
     }
-    #editProfileModal input {
+
+    /* معاينة الملفات */
+    #mediaPreview {
+      position: fixed;
+      top: 0;
+      left: 0;
       width: 100%;
-      margin-bottom: 10px;
-      padding: 8px;
-      box-sizing: border-box;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      font-size: 16px;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 4000;
     }
-    #editProfileModal button {
-      padding: 8px 16px;
+
+    #mediaPreview img,
+    #mediaPreview video {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 10px;
+    }
+
+    .preview-controls {
+      position: absolute;
+      bottom: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 15px;
+    }
+
+    .preview-btn {
+      background: rgba(255,255,255,0.2);
       border: none;
-      border-radius: 5px;
+      color: white;
+      padding: 15px 25px;
+      border-radius: 25px;
       cursor: pointer;
       font-size: 16px;
+      backdrop-filter: blur(10px);
     }
-    #saveProfileBtn {
-      background:#6a11cb;
-      color:white;
-      margin-right: 10px;
+
+    /* حالة الكتابة */
+    .typing-indicator {
+      display: none;
+      padding: 10px 20px;
+      color: #666;
+      font-style: italic;
+      font-size: 14px;
     }
-    #saveProfileBtn:hover {
-      background:#4a07a0;
+
+    .typing-dots {
+      display: inline-block;
+      position: relative;
     }
-    #cancelProfileBtn {
-      background:#ccc;
-      color:#333;
+
+    .typing-dots::after {
+      content: '';
+      animation: typing 1.5s infinite;
     }
-    #cancelProfileBtn:hover {
-      background:#999;
-      color:#fff;
+
+    @keyframes typing {
+      0%, 60%, 100% { content: ''; }
+      30% { content: '.'; }
+      60% { content: '..'; }
+      90% { content: '...'; }
+    }
+
+    /* تحسينات الجوال */
+    @media (max-width: 768px) {
+      #authContainer {
+        width: 90%;
+        padding: 30px 20px;
+      }
+
+      .message {
+        max-width: 85%;
+      }
+
+      #inputContainer {
+        padding: 10px;
+      }
+
+      .user-card {
+        padding: 12px;
+      }
+
+      #appLogo {
+        font-size: 20px;
+      }
+    }
+
+    /* تحسينات إضافية */
+    .fade-in {
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .slide-in {
+      animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); }
+      to { transform: translateX(0); }
+    }
+
+    /* شاشة التحميل */
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #6a11cb;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* تحسين شريط التمرير */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #6a11cb;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #2575fc;
     }
   </style>
 </head>
 <body>
 
-<!-- قسم تسجيل الدخول / إنشاء حساب -->
+<!-- شاشة تسجيل الدخول -->
 <div id="authContainer">
-  <h2 id="formTitle">تسجيل الدخول</h2>
-  <input type="email" id="email" placeholder="البريد الإلكتروني" />
-  <input type="password" id="password" placeholder="كلمة المرور" />
-  <input type="text" id="username" placeholder="الاسم" />
-  <input type="text" id="status" placeholder="الحالة (اختياري)" />
+  <h2 id="formTitle">💬 مرحباً بك في ChatPro</h2>
+  <input type="email" id="email" placeholder="📧 البريد الإلكتروني" />
+  <input type="password" id="password" placeholder="🔒 كلمة المرور" />
+  <input type="text" id="username" placeholder="👤 الاسم" style="display: none;" />
+  <input type="text" id="status" placeholder="✨ الحالة (اختياري)" style="display: none;" />
   <div id="errorMsg"></div>
   <button id="submitBtn">تسجيل الدخول</button>
   <button id="toggleFormBtn">إنشاء حساب جديد</button>
 </div>
 
-<!-- قسم التطبيق (المحادثات والرسائل) -->
+<!-- التطبيق الرئيسي -->
 <div id="app">
-  <div style="display: flex; flex-direction: column; width: 150px; height: 100%;">
-    <div id="menuBar">
-      <button id="menuBtn">☰</button>
-      <div id="usernameDisplay"></div>
-    </div>
-    <div id="conversationsList">
-      <input type="text" id="searchInput" placeholder="ابحث عن مستخدم..." />
-      <!-- قائمة المحادثات -->
-    </div>
-  </div>
-
-  <div id="chatWindow">
-    <div id="chatHeader">اختر محادثة</div>
-    <div id="messages"></div>
-    <div id="inputArea" style="display:none;">
-      <input type="text" id="messageInput" placeholder="اكتب رسالة..." />
-      <button id="sendBtn">إرسال</button>
+  <!-- شريط التطبيق العلوي -->
+  <div id="appHeader">
+    <div id="appLogo">ChatPro</div>
+    <div id="userInfo">
+      <img id="userAvatar" src="" alt="Avatar" />
+      <div>
+        <div id="currentUsername"></div>
+        <div id="currentUserStatus" style="font-size: 12px; opacity: 0.8;"></div>
+      </div>
+      <button id="menuBtn">⚙️</button>
     </div>
   </div>
 
-  <div id="dropdownMenu" role="menu" aria-hidden="true" aria-labelledby="menuBtn">
-    <button id="editProfileBtn" role="menuitem">تعديل بيانات المستخدم</button>
-    <button id="logoutMenuBtn" role="menuitem">تسجيل الخروج</button>
-    <button id="deleteAccountMenuBtn" role="menuitem">حذف الحساب</button>
-    <button id="aboutAppBtn" role="menuitem">عن التطبيق</button>
+  <!-- قائمة المستخدمين -->
+  <div id="usersListContainer">
+    <div id="searchContainer">
+      <input type="text" id="searchInput" placeholder="🔍 ابحث عن مستخدم..." />
+    </div>
+    <div id="usersList"></div>
   </div>
 </div>
 
-<!-- نافذة تعديل بيانات المستخدم -->
-<div id="editProfileModal">
-  <div>
-    <h3>تعديل بيانات المستخدم</h3>
-    <label for="editEmail">البريد الإلكتروني (غير قابل للتعديل):</label>
-    <input type="email" id="editEmail" disabled />
-    
-    <label for="editUsername">اسم المستخدم:</label>
-    <input type="text" id="editUsername" />
-    
-    <label for="editStatus">الحالة:</label>
-    <input type="text" id="editStatus" />
-    
-    <div style="text-align: center;">
-      <button id="saveProfileBtn">حفظ</button>
-      <button id="cancelProfileBtn">إلغاء</button>
+<!-- شاشة المحادثة -->
+<div id="chatContainer">
+  <div id="chatHeader">
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <button id="backBtn">←</button>
+      <div id="chatUserInfo">
+        <img id="chatUserAvatar" src="" alt="Avatar" />
+        <div>
+          <div id="chatUserName"></div>
+          <div id="chatUserStatus"></div>
+        </div>
+      </div>
+    </div>
+    <div id="chatControls">
+      <button class="chat-btn" id="blockUserBtn" title="حظر المستخدم">🚫</button>
+      <button class="chat-btn" id="clearChatBtn" title="مسح المحادثة">🗑️</button>
+    </div>
+  </div>
+
+  <div id="messagesArea"></div>
+  
+  <div class="typing-indicator" id="typingIndicator">
+    <span id="typingUser"></span> يكتب<span class="typing-dots"></span>
+  </div>
+
+  <div id="inputContainer">
+    <button class="input-btn" id="cameraBtn" title="التقاط صورة">📷</button>
+    <button class="input-btn" id="galleryBtn" title="اختيار صورة">🖼️</button>
+    <button class="input-btn" id="videoBtn" title="اختيار فيديو">🎥</button>
+    <textarea id="messageInput" placeholder="اكتب رسالة..." rows="1"></textarea>
+    <button class="input-btn" id="sendBtn" title="إرسال">📤</button>
+  </div>
+</div>
+
+<!-- القائمة المنسدلة -->
+<div id="dropdownMenu">
+  <button class="dropdown-item" id="editProfileBtn">
+    ✏️ تعديل الملف الشخصي
+  </button>
+  <button class="dropdown-item" id="notificationSettingsBtn">
+    🔔 إعدادات الإشعارات
+  </button>
+  <button class="dropdown-item" id="blockedUsersBtn">
+    🚫 المستخدمين المحظورين
+  </button>
+  <button class="dropdown-item" id="aboutBtn">
+    ℹ️ عن التطبيق
+  </button>
+  <button class="dropdown-item danger" id="logoutBtn">
+    🚪 تسجيل الخروج
+  </button>
+  <button class="dropdown-item danger" id="deleteAccountBtn">
+    ❌ حذف الحساب
+  </button>
+</div>
+
+<!-- مودال تعديل الملف الشخصي -->
+<div class="modal" id="editProfileModal">
+  <div class="modal-content">
+    <h3>✏️ تعديل الملف الشخصي</h3>
+    <input type="text" id="editUsername" placeholder="👤 الاسم" />
+    <input type="text" id="editStatus" placeholder="✨ الحالة" />
+    <div class="modal-buttons">
+      <button id="saveProfileBtn">💾 حفظ</button>
+      <button id="cancelProfileBtn">❌ إلغاء</button>
     </div>
   </div>
 </div>
+
+<!-- مودال إعدادات الإشعارات -->
+<div class="modal" id="notificationModal">
+  <div class="modal-content">
+    <h3>🔔 إعدادات الإشعارات</h3>
+    <label>
+      <input type="checkbox" id="enableNotifications" checked /> تفعيل الإشعارات
+    </label>
+    <br><br>
+    <label>
+      <input type="checkbox" id="enableSounds" checked /> تفعيل الأصوات
+    </label>
+    <div class="modal-buttons">
+      <button id="saveNotificationBtn">💾 حفظ</button>
+      <button id="cancelNotificationBtn">❌ إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- معاينة الوسائط -->
+<div id="mediaPreview">
+  <div id="previewContent"></div>
+  <div class="preview-controls">
+    <button class="preview-btn" id="sendMediaBtn">📤 إرسال</button>
+    <button class="preview-btn" id="cancelMediaBtn">❌ إلغاء</button>
+  </div>
+</div>
+
+<!-- ملفات الإدخال المخفية -->
+<input type="file" id="imageInput" accept="image/*" style="display: none;" />
+<input type="file" id="videoInput" accept="video/*" style="display: none;" />
+<input type="file" id="cameraInput" accept="image/*" capture="camera" style="display: none;" />
 
 <!-- صوت الإشعارات -->
-<audio id="notificationSound" src="https://raw.githubusercontent.com/T772299420/-/main/Sms.mp3" preload="auto"></audio>
+<audio id="notificationSound" preload="auto">
+  <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMeBC2I0fPTgjEGHm7A7+OZURE" type="audio/wav">
+</audio>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, getDocs, doc, setDoc, deleteDoc, where, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, getDocs, doc, setDoc, deleteDoc, where, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAm0hh9I6i58ywW1D2gZg09liG-wG-tBsU",
@@ -384,10 +859,26 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
+  const storage = getStorage(app);
 
-  // عناصر الصفحة
+  // متغيرات عامة
+  let currentUser = null;
+  let currentChatUser = null;
+  let unsubscribeMessages = null;
+  let unsubscribeUsers = null;
+  let isLogin = true;
+  let blockedUsers = new Set();
+  let onlineUsers = new Set();
+  let typingUsers = new Map();
+  let typingTimeout = null;
+  let notificationsEnabled = true;
+  let soundsEnabled = true;
+  let selectedMedia = null;
+
+  // عناصر DOM
   const authContainer = document.getElementById('authContainer');
-  const appDiv = document.getElementById('app');
+  const app_div = document.getElementById('app');
+  const chatContainer = document.getElementById('chatContainer');
   const formTitle = document.getElementById('formTitle');
   const submitBtn = document.getElementById('submitBtn');
   const toggleFormBtn = document.getElementById('toggleFormBtn');
@@ -396,53 +887,54 @@
   const passwordInput = document.getElementById('password');
   const usernameInput = document.getElementById('username');
   const statusInput = document.getElementById('status');
-  const conversationsList = document.getElementById('conversationsList');
-  const chatHeader = document.getElementById('chatHeader');
-  const messagesDiv = document.getElementById('messages');
+  const usersList = document.getElementById('usersList');
+  const searchInput = document.getElementById('searchInput');
+  const messagesArea = document.getElementById('messagesArea');
   const messageInput = document.getElementById('messageInput');
   const sendBtn = document.getElementById('sendBtn');
-  const inputArea = document.getElementById('inputArea');
+  const backBtn = document.getElementById('backBtn');
   const menuBtn = document.getElementById('menuBtn');
   const dropdownMenu = document.getElementById('dropdownMenu');
-  const usernameDisplay = document.getElementById('usernameDisplay');
-  const editProfileBtn = document.getElementById('editProfileBtn');
-  const logoutMenuBtn = document.getElementById('logoutMenuBtn');
-  const deleteAccountMenuBtn = document.getElementById('deleteAccountMenuBtn');
-  const aboutAppBtn = document.getElementById('aboutAppBtn');
-  const searchInput = document.getElementById('searchInput');
-
-  // مودال تعديل الملف الشخصي
-  const editProfileModal = document.getElementById('editProfileModal');
-  const editEmailInput = document.getElementById('editEmail');
-  const editUsernameInput = document.getElementById('editUsername');
-  const editStatusInput = document.getElementById('editStatus');
-  const saveProfileBtn = document.getElementById('saveProfileBtn');
-  const cancelProfileBtn = document.getElementById('cancelProfileBtn');
-
-  let isLogin = true;
-  let currentChatEmail = null;
-  let currentChatUserData = null;
-  let unsubscribeMessages = null;
-  const unreadCounts = new Map();
-
-  // متغير لمتابعة آخر رسالة لتشغيل صوت الإشعار مرة واحدة فقط
-  let lastMessageId = null;
-
-  // عنصر صوت الإشعارات
   const notificationSound = document.getElementById('notificationSound');
 
-  // تبديل بين تسجيل الدخول وإنشاء حساب
+  // تحديث حالة الاتصال
+  function updateUserPresence(online) {
+    if (!currentUser) return;
+    
+    const userRef = doc(db, "users", currentUser.uid);
+    updateDoc(userRef, {
+      online: online,
+      lastSeen: serverTimestamp()
+    });
+  }
+
+  // مراقبة حالة النافذة
+  document.addEventListener('visibilitychange', () => {
+    if (currentUser) {
+      updateUserPresence(!document.hidden);
+    }
+  });
+
+  // تحديث حالة الاتصال عند الخروج
+  window.addEventListener('beforeunload', () => {
+    if (currentUser) {
+      updateUserPresence(false);
+    }
+  });
+
+  // تبديل نماذج تسجيل الدخول
   toggleFormBtn.addEventListener('click', () => {
     isLogin = !isLogin;
     errorMsg.textContent = '';
+    
     if (isLogin) {
-      formTitle.textContent = 'تسجيل الدخول';
+      formTitle.innerHTML = '💬 مرحباً بك في ChatPro';
       submitBtn.textContent = 'تسجيل الدخول';
       toggleFormBtn.textContent = 'إنشاء حساب جديد';
       usernameInput.style.display = 'none';
       statusInput.style.display = 'none';
     } else {
-      formTitle.textContent = 'إنشاء حساب جديد';
+      formTitle.innerHTML = '🚀 انضم إلى ChatPro';
       submitBtn.textContent = 'إنشاء حساب';
       toggleFormBtn.textContent = 'لدي حساب بالفعل';
       usernameInput.style.display = 'block';
@@ -450,349 +942,596 @@
     }
   });
 
-  // تسجيل الدخول أو إنشاء الحساب
+  // تسجيل الدخول/إنشاء حساب
   submitBtn.addEventListener('click', async () => {
     errorMsg.textContent = '';
     const email = emailInput.value.trim();
     const password = passwordInput.value.trim();
     const username = usernameInput.value.trim();
-    const status = statusInput.value.trim() || "مرحباً!";
+    const status = statusInput.value.trim() || "متاح للدردشة 💬";
 
     if (!email || !password || (!isLogin && !username)) {
-      errorMsg.textContent = 'يرجى تعبئة جميع الحقول المطلوبة.';
+      errorMsg.textContent = '⚠️ يرجى تعبئة جميع الحقول المطلوبة';
       return;
     }
 
     try {
+      submitBtn.innerHTML = '<div class="loading"></div>';
+      
       if (isLogin) {
         await signInWithEmailAndPassword(auth, email, password);
       } else {
-        await createUserWithEmailAndPassword(auth, email, password);
-        const user = auth.currentUser;
-        if (user) {
-          const userDocRef = doc(db, "users", user.uid);
-          await setDoc(userDocRef, {
-            email: user.email,
-            username,
-            status,
-            photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=6a11cb&color=fff&rounded=true&size=128`,
-          });
-        }
-        alert('تم إنشاء الحساب بنجاح!');
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        
+        await setDoc(doc(db, "users", user.uid), {
+          email: user.email,
+          username,
+          status,
+          photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=6a11cb&color=fff&rounded=true&size=128`,
+          online: true,
+          lastSeen: serverTimestamp(),
+          createdAt: serverTimestamp()
+        });
       }
-    } catch (e) {
-      errorMsg.textContent = e.message;
+    } catch (error) {
+      errorMsg.textContent = getErrorMessage(error.code);
+      submitBtn.textContent = isLogin ? 'تسجيل الدخول' : 'إنشاء حساب';
     }
   });
 
-  // حالة الدخول
-  onAuthStateChanged(auth, async user => {
+  // رسائل الخطأ بالعربية
+  function getErrorMessage(errorCode) {
+    const errors = {
+      'auth/email-already-in-use': '📧 هذا البريد مستخدم مسبقاً',
+      'auth/weak-password': '🔒 كلمة المرور ضعيفة',
+      'auth/user-not-found': '👤 المستخدم غير موجود',
+      'auth/wrong-password': '🔒 كلمة المرور خاطئة',
+      'auth/invalid-email': '📧 البريد الإلكتروني غير صحيح'
+    };
+    return errors[errorCode] || '❌ حدث خطأ، حاول مرة أخرى';
+  }
+
+  // مراقبة حالة المصادقة
+  onAuthStateChanged(auth, async (user) => {
     if (user) {
-      authContainer.style.display = 'none';
-      appDiv.style.display = 'flex';
-      await loadConversations();
-      listenUnreadMessages();
-
-      // عرض اسم المستخدم في الشريط العلوي
-      const userDoc = await getDocs(query(collection(db, "users"), where("email", "==", user.email)));
-      userDoc.forEach(docSnap => {
-        const data = docSnap.data();
-        usernameDisplay.textContent = data.username || user.email;
-      });
-
+      currentUser = user;
+      await initializeApp_();
+      updateUserPresence(true);
+      requestNotificationPermission();
     } else {
-      authContainer.style.display = 'flex';
-      appDiv.style.display = 'none';
-      clearChat();
+      currentUser = null;
+      showAuthScreen();
       if (unsubscribeMessages) unsubscribeMessages();
-      usernameDisplay.textContent = '';
-      dropdownMenu.style.display = 'none';
-      searchInput.value = '';
-      unreadCounts.clear();
-      lastMessageId = null;
+      if (unsubscribeUsers) unsubscribeUsers();
     }
   });
 
-  // تحميل قائمة المحادثات (كل المستخدمين ما عدا المستخدم الحالي)
-  async function loadConversations() {
-    conversationsList.querySelectorAll('.conversation').forEach(c => c.remove());
-    const usersSnapshot = await getDocs(collection(db, "users"));
-    const currentUser = auth.currentUser;
-    usersSnapshot.forEach(docSnap => {
-      const userData = docSnap.data();
-      if (userData.email !== currentUser.email) {
-        addConversationToList(userData);
+  // تهيئة التطبيق
+  async function initializeApp_() {
+    authContainer.style.display = 'none';
+    app_div.style.display = 'block';
+    
+    // تحديث معلومات المستخدم الحالي
+    const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      document.getElementById('currentUsername').textContent = userData.username;
+      document.getElementById('currentUserStatus').textContent = userData.status;
+      document.getElementById('userAvatar').src = userData.photoURL;
+    }
+
+    loadUsers();
+    loadBlockedUsers();
+  }
+
+  // إظهار شاشة تسجيل الدخول
+  function showAuthScreen() {
+    authContainer.style.display = 'block';
+    app_div.style.display = 'none';
+    chatContainer.style.display = 'none';
+  }
+
+  // تحميل المستخدمين
+  function loadUsers() {
+    if (unsubscribeUsers) unsubscribeUsers();
+    
+    const usersRef = collection(db, "users");
+    unsubscribeUsers = onSnapshot(usersRef, (snapshot) => {
+      usersList.innerHTML = '';
+      
+      snapshot.forEach((doc) => {
+        const userData = doc.data();
+        if (userData.email !== currentUser.email) {
+          createUserCard(userData);
+        }
+      });
+    });
+  }
+
+  // إنشاء بطاقة مستخدم
+  function createUserCard(userData) {
+    const userCard = document.createElement('div');
+    userCard.className = 'user-card fade-in';
+    userCard.dataset.email = userData.email;
+    
+    if (blockedUsers.has(userData.email)) {
+      userCard.classList.add('blocked');
+    }
+
+    const isOnline = userData.online;
+    const lastSeen = userData.lastSeen ? userData.lastSeen.toDate() : new Date();
+    
+    userCard.innerHTML = `
+      <div class="user-avatar">
+        <img src="${userData.photoURL}" alt="${userData.username}" width="50" height="50" />
+        <div class="online-indicator ${isOnline ? 'online' : ''}"></div>
+      </div>
+      <div class="user-info">
+        <h4>${userData.username}</h4>
+        <div class="user-status">${userData.status}</div>
+        ${!isOnline ? `<div class="last-seen">آخر ظهور: ${formatLastSeen(lastSeen)}</div>` : ''}
+      </div>
+      <div class="unread-count" id="unread-${userData.email}">0</div>
+    `;
+
+    userCard.addEventListener('click', () => {
+      if (!blockedUsers.has(userData.email)) {
+        openChat(userData);
       }
     });
+
+    usersList.appendChild(userCard);
   }
 
-  // إضافة محادثة لقائمة المحادثات
-  function addConversationToList(userData) {
-    const convDiv = document.createElement('div');
-    convDiv.classList.add('conversation');
-    convDiv.textContent = userData.username || userData.email;
-    convDiv.title = userData.status || "";
-    convDiv.dataset.email = userData.email;
+  // تنسيق آخر ظهور
+  function formatLastSeen(date) {
+    const now = new Date();
+    const diff = now - date;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
 
-    // شارة عدد الرسائل غير المقروءة
-    const badge = document.createElement('span');
-    badge.classList.add('unread-badge');
-    convDiv.appendChild(badge);
-
-    convDiv.addEventListener('click', () => {
-      openChat(userData.email, userData);
-    });
-
-    conversationsList.appendChild(convDiv);
+    if (minutes < 1) return 'الآن';
+    if (minutes < 60) return `منذ ${minutes} دقيقة`;
+    if (hours < 24) return `منذ ${hours} ساعة`;
+    return `منذ ${days} يوم`;
   }
 
-  // فتح محادثة
-  async function openChat(email, userData) {
-    currentChatEmail = email;
-    currentChatUserData = userData;
-    chatHeader.textContent = userData.username || email;
-    messagesDiv.innerHTML = '';
-    inputArea.style.display = 'flex';
-    clearUnreadCount(email);
+  // فتح المحادثة
+  function openChat(userData) {
+    currentChatUser = userData;
+    
+    // إخفاء الشاشة الرئيسية وإظهار المحادثة
+    app_div.style.display = 'none';
+    chatContainer.style.display = 'flex';
+    chatContainer.classList.add('slide-in');
+    
+    // تحديث معلومات المحادثة
+    document.getElementById('chatUserName').textContent = userData.username;
+    document.getElementById('chatUserStatus').textContent = userData.online ? 'متصل الآن 🟢' : `آخر ظهور: ${formatLastSeen(userData.lastSeen?.toDate() || new Date())}`;
+    document.getElementById('chatUserAvatar').src = userData.photoURL;
+    
+    // تحميل الرسائل
+    loadMessages();
+    
+    // مسح عداد الرسائل غير المقروءة
+    clearUnreadCount(userData.email);
+  }
 
+  // تحميل الرسائل
+  function loadMessages() {
     if (unsubscribeMessages) unsubscribeMessages();
-
-    // استماع للرسائل بين المستخدم الحالي والمختار
-    const currentUserEmail = auth.currentUser.email;
+    
+    messagesArea.innerHTML = '';
+    
     const messagesRef = collection(db, "messages");
-    const messagesQuery = query(messagesRef,
-      orderBy("timestamp"));
+    const messagesQuery = query(
+      messagesRef,
+      orderBy("timestamp")
+    );
 
-    unsubscribeMessages = onSnapshot(messagesQuery, snapshot => {
-      messagesDiv.innerHTML = '';
-      snapshot.forEach(docSnap => {
-        const msg = docSnap.data();
-        if (
-          (msg.from === currentUserEmail && msg.to === email) ||
-          (msg.from === email && msg.to === currentUserEmail)
-        ) {
-          appendMessage(msg);
-        } else if (msg.to === currentUserEmail && msg.from === email && !msg.read) {
-          // وسم الرسالة كمقروءة
-          markMessageAsRead(docSnap.id);
+    unsubscribeMessages = onSnapshot(messagesQuery, (snapshot) => {
+      messagesArea.innerHTML = '';
+      
+      snapshot.forEach((doc) => {
+        const messageData = doc.data();
+        const messageId = doc.id;
+        
+        if (isMessageBetweenUsers(messageData, currentUser.email, currentChatUser.email)) {
+          displayMessage(messageData, messageId);
+          
+          // وسم الرسالة كمقروءة إذا كانت واردة
+          if (messageData.to === currentUser.email && !messageData.read) {
+            markMessageAsRead(messageId);
+          }
         }
       });
-      scrollMessagesToBottom();
+      
+      scrollToBottom();
     });
   }
 
-  // إظهار رسالة في نافذة الدردشة
-  function appendMessage(msg) {
-    const div = document.createElement('div');
-    div.classList.add('message');
-    div.classList.add(msg.from === auth.currentUser.email ? 'sent' : 'received');
-    div.textContent = msg.text;
-
-    const timeSpan = document.createElement('div');
-    timeSpan.classList.add('time');
-    const date = msg.timestamp ? msg.timestamp.toDate() : new Date();
-    timeSpan.textContent = date.toLocaleTimeString('ar-EG', {hour: '2-digit', minute: '2-digit'});
-
-    div.appendChild(timeSpan);
-    messagesDiv.appendChild(div);
-
-    // تشغيل صوت الإشعار للرسائل المستلمة الجديدة فقط
-    if (msg.from !== auth.currentUser.email && doc.id !== lastMessageId) {
-      notificationSound.play();
-      lastMessageId = doc.id;
-    }
+  // التحقق من أن الرسالة بين المستخدمين
+  function isMessageBetweenUsers(message, user1, user2) {
+    return (message.from === user1 && message.to === user2) ||
+           (message.from === user2 && message.to === user1);
   }
 
-  // التمرير لنهاية الرسائل تلقائيًا
-  function scrollMessagesToBottom() {
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  // عرض الرسالة
+  function displayMessage(messageData, messageId) {
+    const messageWrapper = document.createElement('div');
+    messageWrapper.className = `message-wrapper ${messageData.from === currentUser.email ? 'sent' : 'received'}`;
+    
+    const message = document.createElement('div');
+    message.className = `message ${messageData.from === currentUser.email ? 'sent' : 'received'}`;
+    
+    // إضافة خيارات الرسالة
+    if (messageData.from === currentUser.email) {
+      const messageOptions = document.createElement('div');
+      messageOptions.className = 'message-options';
+      messageOptions.innerHTML = `
+        <button class="message-option" onclick="deleteMessage('${messageId}', 'me')" title="حذف لدي">🗑️</button>
+        <button class="message-option" onclick="deleteMessage('${messageId}', 'all')" title="حذف للجميع">❌</button>
+      `;
+      messageWrapper.appendChild(messageOptions);
+    }
+
+    // محتوى الرسالة
+    let messageContent = '';
+    
+    if (messageData.type === 'image') {
+      messageContent = `
+        <div class="message-media">
+          <img src="${messageData.mediaURL}" alt="صورة" onclick="openMediaPreview('${messageData.mediaURL}', 'image')" />
+        </div>
+      `;
+    } else if (messageData.type === 'video') {
+      messageContent = `
+        <div class="message-media">
+          <video src="${messageData.mediaURL}" controls onclick="openMediaPreview('${messageData.mediaURL}', 'video')"></video>
+        </div>
+      `;
+    } else {
+      messageContent = messageData.text || '';
+    }
+    
+    const timestamp = messageData.timestamp ? messageData.timestamp.toDate() : new Date();
+    
+    message.innerHTML = `
+      ${messageContent}
+      ${messageData.text && messageData.type !== 'text' ? `<div>${messageData.text}</div>` : ''}
+      <div class="message-time">${formatTime(timestamp)}</div>
+    `;
+    
+    messageWrapper.appendChild(message);
+    messagesArea.appendChild(messageWrapper);
   }
 
-  // إرسال رسالة جديدة
-  sendBtn.addEventListener('click', async () => {
-    const text = messageInput.value.trim();
-    if (!text || !currentChatEmail) return;
-    const currentUserEmail = auth.currentUser.email;
-    try {
-      await addDoc(collection(db, "messages"), {
-        from: currentUserEmail,
-        to: currentChatEmail,
-        text,
-        timestamp: serverTimestamp(),
-        read: false,
-      });
-      messageInput.value = '';
-    } catch (e) {
-      alert('حدث خطأ أثناء إرسال الرسالة.');
-    }
-  });
+  // تنسيق الوقت
+  function formatTime(date) {
+    return date.toLocaleTimeString('ar-EG', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
 
-  // علامة الرسالة كمقروءة
+  // التمرير للأسفل
+  function scrollToBottom() {
+    messagesArea.scrollTop = messagesArea.scrollHeight;
+  }
+
+  // وسم الرسالة كمقروءة
   async function markMessageAsRead(messageId) {
-    const msgDoc = doc(db, "messages", messageId);
-    await setDoc(msgDoc, { read: true }, { merge: true });
-    clearUnreadCount(currentChatEmail);
-  }
-
-  // الاستماع للرسائل غير المقروءة لتحديث شارات التنبيه
-  function listenUnreadMessages() {
-    const currentUserEmail = auth.currentUser.email;
-    const messagesRef = collection(db, "messages");
-    const unreadQuery = query(messagesRef, where("to", "==", currentUserEmail), where("read", "==", false));
-
-    onSnapshot(unreadQuery, snapshot => {
-      // تحديث عداد الرسائل لكل محادثة
-      const counts = {};
-      snapshot.forEach(docSnap => {
-        const msg = docSnap.data();
-        counts[msg.from] = (counts[msg.from] || 0) + 1;
-      });
-
-      // تحديث الواجهة
-      document.querySelectorAll('.conversation').forEach(conv => {
-        const email = conv.dataset.email;
-        const badge = conv.querySelector('.unread-badge');
-        if (counts[email]) {
-          badge.textContent = counts[email];
-          badge.style.display = 'inline-block';
-        } else {
-          badge.style.display = 'none';
-        }
-      });
-    });
+    const messageRef = doc(db, "messages", messageId);
+    await updateDoc(messageRef, { read: true });
   }
 
   // مسح عداد الرسائل غير المقروءة
-  function clearUnreadCount(email) {
-    const convDiv = [...conversationsList.children].find(c => c.dataset.email === email);
-    if (!convDiv) return;
-    const badge = convDiv.querySelector('.unread-badge');
-    badge.style.display = 'none';
-  }
-
-  // مسح المحادثة عند تسجيل الخروج
-  function clearChat() {
-    messagesDiv.innerHTML = '';
-    chatHeader.textContent = 'اختر محادثة';
-    inputArea.style.display = 'none';
-    currentChatEmail = null;
-    currentChatUserData = null;
-  }
-
-  // زر القائمة العلوية
-  menuBtn.addEventListener('click', () => {
-    if (dropdownMenu.style.display === 'flex') {
-      dropdownMenu.style.display = 'none';
-      dropdownMenu.setAttribute('aria-hidden', 'true');
-    } else {
-      dropdownMenu.style.display = 'flex';
-      dropdownMenu.setAttribute('aria-hidden', 'false');
+  function clearUnreadCount(userEmail) {
+    const unreadElement = document.getElementById(`unread-${userEmail}`);
+    if (unreadElement) {
+      unreadElement.classList.remove('show');
+      unreadElement.textContent = '0';
     }
+  }
+
+  // إرسال رسالة
+  async function sendMessage(text = '', type = 'text', mediaURL = '') {
+    if ((!text.trim() && !mediaURL) || !currentChatUser) return;
+    
+    const messageData = {
+      from: currentUser.email,
+      to: currentChatUser.email,
+      text: text.trim(),
+      type,
+      timestamp: serverTimestamp(),
+      read: false
+    };
+    
+    if (mediaURL) {
+      messageData.mediaURL = mediaURL;
+    }
+    
+    try {
+      await addDoc(collection(db, "messages"), messageData);
+      messageInput.value = '';
+      
+      // إرسال إشعار
+      if (notificationsEnabled) {
+        sendNotification(currentChatUser.username, text || 'وسائط');
+      }
+      
+    } catch (error) {
+      console.error('خطأ في إرسال الرسالة:', error);
+    }
+  }
+
+  // رفع الملفات
+  async function uploadFile(file) {
+    const fileRef = ref(storage, `media/${Date.now()}_${file.name}`);
+    const snapshot = await uploadBytes(fileRef, file);
+    return await getDownloadURL(snapshot.ref);
+  }
+
+  // معاينة الوسائط
+  function showMediaPreview(file, type) {
+    selectedMedia = { file, type };
+    const previewContent = document.getElementById('previewContent');
+    
+    if (type === 'image') {
+      previewContent.innerHTML = `<img src="${URL.createObjectURL(file)}" alt="معاينة" />`;
+    } else if (type === 'video') {
+      previewContent.innerHTML = `<video src="${URL.createObjectURL(file)}" controls></video>`;
+    }
+    
+    document.getElementById('mediaPreview').style.display = 'flex';
+  }
+
+  // حذف الرسالة
+  window.deleteMessage = async function(messageId, deleteType) {
+    if (!confirm('هل تريد حذف هذه الرسالة؟')) return;
+    
+    try {
+      if (deleteType === 'all') {
+        await deleteDoc(doc(db, "messages", messageId));
+      } else {
+        // حذف محلي فقط - يمكن تطبيق منطق مختلف هنا
+        const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+        if (messageElement) {
+          messageElement.style.opacity = '0.3';
+          messageElement.innerHTML = '<em>تم حذف هذه الرسالة</em>';
+        }
+      }
+    } catch (error) {
+      console.error('خطأ في حذف الرسالة:', error);
+    }
+  };
+
+  // طلب إذن الإشعارات
+  async function requestNotificationPermission() {
+    if ('Notification' in window) {
+      const permission = await Notification.requestPermission();
+      notificationsEnabled = permission === 'granted';
+    }
+  }
+
+  // إرسال إشعار
+  function sendNotification(title, body) {
+    if (notificationsEnabled && document.hidden) {
+      new Notification(`💬 ${title}`, {
+        body,
+        icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQwIiBoZWlnaHQ9IjI0MCIgdmlld0JveD0iMCAwIDI0MCAyNDAiIGZpbGw9IiM2YTExY2IiPjxyZWN0IHdpZHRoPSIyNDAiIGhlaWdodD0iMjQwIiBmaWxsPSJ3aGl0ZSIvPjx0ZXh0IHg9IjEyMCIgeT0iMTIwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMzAiIGZpbGw9IiM2YTExY2IiPiBDaGF0UHJvPC90ZXh0Pjwvc3ZnPg=='
+      });
+    }
+    
+    if (soundsEnabled) {
+      notificationSound.play();
+    }
+  }
+
+  // تحميل المستخدمين المحظورين
+  async function loadBlockedUsers() {
+    const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+    if (userDoc.exists() && userDoc.data().blockedUsers) {
+      blockedUsers = new Set(userDoc.data().blockedUsers);
+    }
+  }
+
+  // حظر/إلغاء حظر مستخدم
+  async function toggleBlockUser(userEmail) {
+    const userRef = doc(db, "users", currentUser.uid);
+    
+    if (blockedUsers.has(userEmail)) {
+      blockedUsers.delete(userEmail);
+    } else {
+      blockedUsers.add(userEmail);
+    }
+    
+    await updateDoc(userRef, {
+      blockedUsers: Array.from(blockedUsers)
+    });
+    
+    loadUsers();
+  }
+
+  // الأحداث
+  sendBtn.addEventListener('click', () => sendMessage(messageInput.value));
+  
+  messageInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage(messageInput.value);
+    }
+  });
+
+  backBtn.addEventListener('click', () => {
+    chatContainer.style.display = 'none';
+    app_div.style.display = 'block';
+    currentChatUser = null;
+    if (unsubscribeMessages) unsubscribeMessages();
+  });
+
+  // أحداث الوسائط
+  document.getElementById('galleryBtn').addEventListener('click', () => {
+    document.getElementById('imageInput').click();
+  });
+
+  document.getElementById('videoBtn').addEventListener('click', () => {
+    document.getElementById('videoInput').click();
+  });
+
+  document.getElementById('cameraBtn').addEventListener('click', () => {
+    document.getElementById('cameraInput').click();
+  });
+
+  // معالجة اختيار الصور
+  document.getElementById('imageInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      showMediaPreview(file, 'image');
+    }
+  });
+
+  // معالجة اختيار الفيديوهات
+  document.getElementById('videoInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      showMediaPreview(file, 'video');
+    }
+  });
+
+  // معالجة التقاط الصور
+  document.getElementById('cameraInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      showMediaPreview(file, 'image');
+    }
+  });
+
+  // إرسال الوسائط
+  document.getElementById('sendMediaBtn').addEventListener('click', async () => {
+    if (selectedMedia) {
+      try {
+        document.getElementById('sendMediaBtn').innerHTML = '<div class="loading"></div>';
+        
+        const mediaURL = await uploadFile(selectedMedia.file);
+        await sendMessage('', selectedMedia.type, mediaURL);
+        
+        document.getElementById('mediaPreview').style.display = 'none';
+        selectedMedia = null;
+      } catch (error) {
+        alert('فشل في رفع الملف');
+        console.error(error);
+      }
+      
+      document.getElementById('sendMediaBtn').innerHTML = '📤 إرسال';
+    }
+  });
+
+  // إلغاء معاينة الوسائط
+  document.getElementById('cancelMediaBtn').addEventListener('click', () => {
+    document.getElementById('mediaPreview').style.display = 'none';
+    selectedMedia = null;
+  });
+
+  // القائمة المنسدلة
+  menuBtn.addEventListener('click', () => {
+    dropdownMenu.style.display = dropdownMenu.style.display === 'flex' ? 'none' : 'flex';
   });
 
   // إغلاق القائمة عند النقر خارجها
-  document.addEventListener('click', e => {
+  document.addEventListener('click', (e) => {
     if (!menuBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
       dropdownMenu.style.display = 'none';
-      dropdownMenu.setAttribute('aria-hidden', 'true');
     }
   });
 
-  // زر تسجيل الخروج
-  logoutMenuBtn.addEventListener('click', async () => {
-    await signOut(auth);
-  });
-
-  // زر حذف الحساب
-  deleteAccountMenuBtn.addEventListener('click', async () => {
-    if (!confirm('هل أنت متأكد من حذف حسابك؟ هذا الإجراء لا يمكن التراجع عنه.')) return;
-    const user = auth.currentUser;
-    if (user) {
-      try {
-        // حذف بيانات المستخدم من Firestore
-        await deleteDoc(doc(db, "users", user.uid));
-        // حذف حساب Firebase Authentication
-        await deleteUser(user);
-        alert('تم حذف الحساب بنجاح.');
-      } catch (e) {
-        alert('حدث خطأ أثناء حذف الحساب. حاول تسجيل الخروج وإعادة الدخول.');
-      }
-    }
-  });
-
-  // زر تعديل بيانات المستخدم
-  editProfileBtn.addEventListener('click', async () => {
-    const user = auth.currentUser;
-    if (!user) return;
-
-    const userDocRef = doc(db, "users", user.uid);
-    const userDocSnap = await getDoc(userDocRef);
-    if (userDocSnap.exists()) {
-      const data = userDocSnap.data();
-      editEmailInput.value = user.email;
-      editUsernameInput.value = data.username || '';
-      editStatusInput.value = data.status || '';
-      editProfileModal.style.display = 'flex';
-    }
-  });
-
-  // حفظ تعديل البيانات
-  saveProfileBtn.addEventListener('click', async () => {
-    const newUsername = editUsernameInput.value.trim();
-    const newStatus = editStatusInput.value.trim();
-
-    if (!newUsername) {
-      alert('الرجاء إدخال اسم المستخدم.');
-      return;
-    }
-
-    const user = auth.currentUser;
-    if (!user) return;
-
-    try {
-      const userDocRef = doc(db, "users", user.uid);
-      await setDoc(userDocRef, {
-        username: newUsername,
-        status: newStatus,
-        photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(newUsername)}&background=6a11cb&color=fff&rounded=true&size=128`
-      }, { merge: true });
-
-      usernameDisplay.textContent = newUsername;
-
-      // تحديث قائمة المحادثات
-      await loadConversations();
-
-      editProfileModal.style.display = 'none';
-    } catch (e) {
-      alert('حدث خطأ أثناء حفظ البيانات.');
-    }
-  });
-
-  // إلغاء تعديل البيانات
-  cancelProfileBtn.addEventListener('click', () => {
-    editProfileModal.style.display = 'none';
-  });
-
-  // زر "عن التطبيق"
-  aboutAppBtn.addEventListener('click', () => {
-    alert('تطبيق دردشة فورية مبني باستخدام Firebase وJavaScript.\n\nتم تطويره لمروان.');
-  });
-
-  // البحث في قائمة المحادثات
-  searchInput.addEventListener('input', () => {
-    const filter = searchInput.value.toLowerCase();
-    document.querySelectorAll('.conversation').forEach(conv => {
-      const text = conv.textContent.toLowerCase();
-      if (text.includes(filter)) {
-        conv.style.display = 'block';
-      } else {
-        conv.style.display = 'none';
-      }
+  // البحث
+  searchInput.addEventListener('input', (e) => {
+    const searchTerm = e.target.value.toLowerCase();
+    const userCards = document.querySelectorAll('.user-card');
+    
+    userCards.forEach(card => {
+      const username = card.querySelector('h4').textContent.toLowerCase();
+      card.style.display = username.includes(searchTerm) ? 'flex' : 'none';
     });
   });
 
+  // أحداث القائمة
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    if (confirm('هل تريد تسجيل الخروج؟')) {
+      updateUserPresence(false);
+      await signOut(auth);
+    }
+  });
+
+  document.getElementById('deleteAccountBtn').addEventListener('click', async () => {
+    if (confirm('هل تريد حذف حسابك نهائياً؟ لا يمكن التراجع عن هذا الإجراء.')) {
+      try {
+        await deleteDoc(doc(db, "users", currentUser.uid));
+        await deleteUser(currentUser);
+      } catch (error) {
+        alert('فشل في حذف الحساب');
+      }
+    }
+  });
+
+  document.getElementById('blockUserBtn').addEventListener('click', () => {
+    if (currentChatUser) {
+      const isBlocked = blockedUsers.has(currentChatUser.email);
+      if (confirm(`هل تريد ${isBlocked ? 'إلغاء حظر' : 'حظر'} ${currentChatUser.username}؟`)) {
+        toggleBlockUser(currentChatUser.email);
+      }
+    }
+  });
+
+  document.getElementById('clearChatBtn').addEventListener('click', () => {
+    if (confirm('هل تريد مسح جميع الرسائل في هذه المحادثة؟')) {
+      // يمكن تنفيذ منطق مسح المحادثة هنا
+      messagesArea.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">تم مسح المحادثة</div>';
+    }
+  });
+
+  // معاينة الوسائط في وضع ملء الشاشة
+  window.openMediaPreview = function(url, type) {
+    const previewContent = document.getElementById('previewContent');
+    
+    if (type === 'image') {
+      previewContent.innerHTML = `<img src="${url}" alt="صورة" />`;
+    } else if (type === 'video') {
+      previewContent.innerHTML = `<video src="${url}" controls></video>`;
+    }
+    
+    document.getElementById('mediaPreview').style.display = 'flex';
+    
+    // إغلاق المعاينة عند النقر على الخلفية
+    document.getElementById('mediaPreview').onclick = (e) => {
+      if (e.target === e.currentTarget) {
+        document.getElementById('mediaPreview').style.display = 'none';
+      }
+    };
+  };
+
+  // تحسينات إضافية للتجربة
+  
+  // تحديث حجم textarea تلقائياً
+  messageInput.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+  });
+
+  // إشعار عند اتصال/قطع الاتصال
+  window.addEventListener('online', () => {
+    if (currentUser) updateUserPresence(true);
+  });
+
+  window.addEventListener('offline', () => {
+    if (currentUser) updateUserPresence(false);
+  });
+
+  console.log('💬 ChatPro تم تحميله بنجاح!');
 </script>
 
 </body>
-  </html>
-
+</html>
