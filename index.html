@@ -657,18 +657,19 @@
       display: flex;
       gap: 8px;
     }
-
+    
+    /* تصميم الأزرار الجديدة */
     .media-btn {
       background: #f8f9fa;
       color: #6a11cb;
       border: 2px solid #e9ecef;
-      padding: 12px;
+      padding: 8px; /* أصغر */
       border-radius: 12px;
       cursor: pointer;
-      font-size: 20px;
+      font-size: 18px; /* أصغر قليلاً */
       transition: all 0.3s;
-      width: 48px;
-      height: 48px;
+      width: 40px; /* أصغر */
+      height: 40px; /* أصغر */
       display: flex;
       align-items: center;
       justify-content: center;
@@ -683,7 +684,7 @@
     #messageInput {
       flex: 1;
       resize: none;
-      min-height: 48px;
+      min-height: 40px;
       max-height: 120px;
       padding: 12px 20px;
       border: 2px solid #e9ecef;
@@ -692,19 +693,24 @@
       line-height: 1.4;
       margin: 0;
     }
-
+    
+    /* تصميم زر الإرسال الجديد */
     #sendBtn {
       background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
       color: white;
       border: none;
-      padding: 12px 20px;
-      border-radius: 25px;
+      padding: 12px; /* أصغر */
+      border-radius: 50%; /* دائري */
       cursor: pointer;
-      font-size: 16px;
+      font-size: 20px;
       font-weight: bold;
       transition: transform 0.2s;
       margin: 0;
-      min-width: 80px;
+      width: 48px; /* حجم ثابت */
+      height: 48px; /* حجم ثابت */
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     #sendBtn:hover {
@@ -1129,15 +1135,12 @@
           <button class="media-btn" id="videoBtn" title="اختيار فيديو">🎥</button>
         </div>
         <textarea id="messageInput" placeholder="اكتب رسالة..." rows="1"></textarea>
-        <button id="sendBtn">إرسال</button>
+        <button id="sendBtn">↑</button>
       </div>
     </div>
   </div>
 
   <div id="dropdownMenu">
-    <button class="dropdown-item" id="installAppBtn">
-      <span>📲 تحميل التطبيق</span>
-    </button>
     <button class="dropdown-item" id="editProfileBtn">
       <span>✏️ تعديل الملف الشخصي</span>
     </button>
@@ -1149,9 +1152,6 @@
     </button>
     <button class="dropdown-item" id="aboutBtn">
       <span>ℹ️ عن التطبيق</span>
-    </button>
-    <button class="dropdown-item" id="contactUsBtn">
-      <span>📞 اتصل بنا</span>
     </button>
     <button class="dropdown-item danger" id="logoutBtn">
       <span>🚪 تسجيل الخروج</span>
@@ -1247,7 +1247,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, deleteUser, reauthenticateWithCredential, EmailAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, getDocs, doc, setDoc, deleteDoc, where, getDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, getDocs, doc, setDoc, deleteDoc, where, getDoc, updateDoc, arrayUnion, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
   const firebaseConfig = {
@@ -1274,7 +1274,7 @@
   let unreadMessageCounts = {};
   let lastMessageTimes = {};
   let usersData = {};
-  let seenUsersSet = new Set(); // تم تغيير الاسم ليكون أكثر دقة
+  let seenUsersSet = new Set();
   let isLogin = true;
   let blockedUsers = new Set();
   let onlineUsers = new Set();
@@ -1313,11 +1313,6 @@
   const deleteForMeBtn = document.getElementById('deleteForMeBtn');
   const deleteForAllBtn = document.getElementById('deleteForAllBtn');
   const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-  const usersCountElement = document.getElementById('usersCount');
-  const installAppBtn = document.getElementById('installAppBtn');
-  let deferredPrompt;
-
-  // عناصر المودال
   const editProfileModal = document.getElementById('editProfileModal');
   const editUsernameInput = document.getElementById('editUsername');
   const editStatusInput = document.getElementById('editStatus');
@@ -1328,637 +1323,796 @@
   const enableSoundsCheckbox = document.getElementById('enableSounds');
   const saveNotificationBtn = document.getElementById('saveNotificationBtn');
   const cancelNotificationBtn = document.getElementById('cancelNotificationBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+  const blockUserBtn = document.getElementById('blockUserBtn');
+  const typingIndicator = document.getElementById('typingIndicator');
+  const typingUserSpan = document.getElementById('typingUser');
+  const chatUserAvatar = document.getElementById('chatUserAvatar');
+  const chatUserName = document.getElementById('chatUserName');
+  const chatUserStatus = document.getElementById('chatUserStatus');
+  const userAvatarImg = document.getElementById('userAvatar');
+  const currentUsernameSpan = document.getElementById('currentUsername');
+  const currentUserStatusSpan = document.getElementById('currentUserStatus');
+  const usersCountSpan = document.getElementById('usersCount');
+  const cameraBtn = document.getElementById('cameraBtn');
+  const galleryBtn = document.getElementById('galleryBtn');
+  const videoBtn = document.getElementById('videoBtn');
+  const imageInput = document.getElementById('imageInput');
+  const videoInput = document.getElementById('videoInput');
+  const cameraInput = document.getElementById('cameraInput');
+  const mediaPreviewModal = document.getElementById('mediaPreview');
+  const previewMediaDiv = document.getElementById('previewMedia');
+  const sendMediaBtn = document.getElementById('sendMediaBtn');
+  const cancelMediaBtn = document.getElementById('cancelMediaBtn');
   const welcomeModal = document.getElementById('welcomeModal');
-  const welcomeUsername = document.getElementById('welcomeUsername');
+  const welcomeUsernameSpan = document.getElementById('welcomeUsername');
   const welcomeModalOkBtn = document.getElementById('welcomeModalOkBtn');
+  const blockedUsersBtn = document.getElementById('blockedUsersBtn');
+  const aboutBtn = document.getElementById('aboutBtn');
   
-  // إضافة مستمع لزر القائمة
-  menuBtn.addEventListener('click', (event) => {
-    event.stopPropagation();
+  // دالة لإظهار النوافذ المنبثقة
+  const showModal = (modal) => {
+    modal.style.display = 'flex';
+  };
+
+  // دالة لإخفاء النوافذ المنبثقة
+  const hideModal = (modal) => {
+    modal.style.display = 'none';
+  };
+
+  // وظائف واجهة المستخدم
+  // =========================================================================================
+
+  // إظهار واجهة المصادقة وإخفاء التطبيق
+  const showAuth = () => {
+    authContainer.style.display = 'block';
+    app_div.style.display = 'none';
+  };
+
+  // إظهار واجهة التطبيق وإخفاء المصادقة
+  const showApp = () => {
+    authContainer.style.display = 'none';
+    app_div.style.display = 'flex';
+  };
+
+  // إظهار قائمة المستخدمين وإخفاء الدردشة (للجوال)
+  const showUsersList = () => {
+    usersListContainer.style.display = 'flex';
+    chatContainer.style.display = 'none';
+    currentChatUser = null;
+    messageInput.value = '';
+    messagesArea.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">💬</div>
+        <p>اختر محادثة لبدء الدردشة</p>
+      </div>
+    `;
+    if (unsubscribeMessages) {
+      unsubscribeMessages();
+    }
+  };
+
+  // إظهار واجهة الدردشة وإخفاء قائمة المستخدمين (للجوال)
+  const showChat = () => {
+    usersListContainer.style.display = 'none';
+    chatContainer.style.display = 'flex';
+    messageInput.value = ''; // تأكد من مسح حقل النص عند التبديل
+    messagesArea.innerHTML = '';
+  };
+
+  // تحديث واجهة المستخدم بعد تسجيل الدخول
+  const updateUIOnLogin = async (user) => {
+    currentUser = user;
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      currentUsernameSpan.textContent = userData.username;
+      currentUserStatusSpan.textContent = userData.status || 'متصل الآن';
+      userAvatarImg.src = userData.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${userData.username}`;
+    }
+
+    // إظهار مودال الترحيب إذا كان المستخدم جديداً
+    if (!localStorage.getItem('welcomeSeen')) {
+      welcomeUsernameSpan.textContent = userDoc.data()?.username || 'ضيف';
+      showModal(welcomeModal);
+      localStorage.setItem('welcomeSeen', 'true');
+    }
+
+    showApp();
+    showUsersList();
+    listenForUsers();
+    listenForUnreadCounts();
+    listenForBlockedUsers();
+    listenForOnlineUsers();
+  };
+
+  // وظائف المصادقة
+  // =========================================================================================
+
+  // تسجيل مستخدم جديد
+  const signup = async (email, password, username, status) => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      await setDoc(doc(db, 'users', user.uid), {
+        email: email,
+        username: username,
+        status: status || 'متصل الآن',
+        avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${username}`,
+        createdAt: serverTimestamp(),
+        lastSeen: serverTimestamp(),
+        isBlocked: []
+      });
+      console.log("تم إنشاء حساب جديد بنجاح!");
+      errorMsg.textContent = '';
+      updateUIOnLogin(user);
+    } catch (error) {
+      console.error("خطأ في إنشاء الحساب:", error);
+      errorMsg.textContent = "خطأ: " + error.message;
+    }
+  };
+
+  // تسجيل الدخول
+  const login = async (email, password) => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log("تم تسجيل الدخول بنجاح!");
+      errorMsg.textContent = '';
+      updateUIOnLogin(userCredential.user);
+    } catch (error) {
+      console.error("خطأ في تسجيل الدخول:", error);
+      errorMsg.textContent = "خطأ: " + error.message;
+    }
+  };
+
+  // تسجيل الخروج
+  const logout = async () => {
+    try {
+      await updateDoc(doc(db, 'users', currentUser.uid), {
+        lastSeen: serverTimestamp()
+      });
+      await signOut(auth);
+      showAuth();
+      console.log("تم تسجيل الخروج بنجاح.");
+      // إلغاء كل المستمعين
+      if (unsubscribeUsers) unsubscribeUsers();
+      if (unsubscribeMessages) unsubscribeMessages();
+      if (unsubscribeUnreadCounts) unsubscribeUnreadCounts();
+    } catch (error) {
+      console.error("خطأ في تسجيل الخروج:", error);
+    }
+  };
+  
+  // حذف الحساب
+  const deleteAccount = async () => {
+    const user = auth.currentUser;
+    if (user) {
+      try {
+        // إعادة مصادقة المستخدم
+        const credential = prompt("لإتمام عملية الحذف، يرجى إدخال كلمة المرور:");
+        if (!credential) return;
+
+        const authCredential = EmailAuthProvider.credential(user.email, credential);
+        await reauthenticateWithCredential(user, authCredential);
+
+        // حذف بيانات المستخدم من Firestore
+        await deleteDoc(doc(db, 'users', user.uid));
+
+        // حذف المستخدم نفسه
+        await deleteUser(user);
+
+        console.log("تم حذف الحساب بنجاح.");
+        showAuth();
+      } catch (error) {
+        console.error("خطأ في حذف الحساب:", error);
+        alert("خطأ في حذف الحساب: " + error.message);
+      }
+    }
+  };
+
+  // وظائف قاعدة البيانات (Firestore)
+  // =========================================================================================
+
+  // الاستماع لتغييرات قائمة المستخدمين
+  const listenForUsers = () => {
+    const usersCollectionRef = collection(db, 'users');
+    unsubscribeUsers = onSnapshot(usersCollectionRef, (snapshot) => {
+      snapshot.forEach(doc => {
+        usersData[doc.id] = { id: doc.id, ...doc.data() };
+      });
+      renderUsersList();
+    });
+  };
+
+  // الاستماع للرسائل في المحادثة المحددة
+  const listenForMessages = (chatId) => {
+    if (unsubscribeMessages) {
+      unsubscribeMessages();
+    }
+    const messagesCollectionRef = collection(db, 'chats', chatId, 'messages');
+    const q = query(messagesCollectionRef, orderBy('timestamp'));
+    unsubscribeMessages = onSnapshot(q, (snapshot) => {
+      messagesArea.innerHTML = '';
+      snapshot.docs.forEach((doc) => {
+        const message = doc.data();
+        const messageId = doc.id;
+        displayMessage(message, messageId);
+      });
+      messagesArea.scrollTop = messagesArea.scrollHeight;
+      // تحديث حالة "شوهدت" للرسائل
+      updateLastSeenMessage();
+      resetUnreadCount(currentChatUser.id);
+    });
+  };
+
+  // تحديث حالة "آخر رسالة شوهدت"
+  const updateLastSeenMessage = async () => {
+    if (!currentUser || !currentChatUser) return;
+    const chatDocRef = doc(db, 'chats', getChatId(currentUser.uid, currentChatUser.id));
+    await setDoc(chatDocRef, {
+      [`lastSeen_${currentUser.uid}`]: new Date()
+    }, { merge: true });
+  };
+
+  // تحديث حالة المستخدم (online/offline)
+  const updateOnlineStatus = async (status) => {
+    if (currentUser) {
+      await updateDoc(doc(db, 'users', currentUser.uid), {
+        isOnline: status
+      });
+    }
+  };
+
+  // تحديث حالة المستخدم في الخلفية
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      updateOnlineStatus(false);
+    } else {
+      updateOnlineStatus(true);
+    }
+  });
+
+  // الاستماع لحالة المستخدمين (online/offline)
+  const listenForOnlineUsers = () => {
+    const usersCollectionRef = collection(db, 'users');
+    onSnapshot(usersCollectionRef, (snapshot) => {
+      onlineUsers.clear();
+      snapshot.docs.forEach(doc => {
+        const userData = doc.data();
+        if (userData.isOnline) {
+          onlineUsers.add(doc.id);
+        }
+      });
+      renderUsersList();
+    });
+  };
+  
+  // الاستماع لعدادات الرسائل غير المقروءة
+  const listenForUnreadCounts = () => {
+    if (!currentUser) return;
+    const unreadCountsRef = collection(db, 'users', currentUser.uid, 'unreadCounts');
+    unsubscribeUnreadCounts = onSnapshot(unreadCountsRef, (snapshot) => {
+      snapshot.forEach(doc => {
+        unreadMessageCounts[doc.id] = doc.data().count;
+      });
+      renderUsersList();
+    });
+  };
+  
+  // زيادة عداد الرسائل غير المقروءة
+  const incrementUnreadCount = async (receiverId, senderId) => {
+      const unreadCountDocRef = doc(db, 'users', receiverId, 'unreadCounts', senderId);
+      await setDoc(unreadCountDocRef, { count: increment(1) }, { merge: true });
+  };
+
+  // تصفير عداد الرسائل غير المقروءة
+  const resetUnreadCount = async (senderId) => {
+      if (!currentUser) return;
+      const unreadCountDocRef = doc(db, 'users', currentUser.uid, 'unreadCounts', senderId);
+      await setDoc(unreadCountDocRef, { count: 0 }, { merge: true });
+  };
+
+  // وظائف واجهة المستخدم (عرض البيانات)
+  // =========================================================================================
+
+  // إنشاء بطاقة المستخدم
+  const createUserCard = (user) => {
+    const userCard = document.createElement('div');
+    userCard.className = `user-card ${currentChatUser && currentChatUser.id === user.id ? 'active' : ''}`;
+    userCard.dataset.id = user.id;
+
+    const isOnline = onlineUsers.has(user.id);
+    const isNewUser = user.createdAt && (new Date() - new Date(user.createdAt.seconds * 1000)) < 24 * 60 * 60 * 1000;
+    const isMe = user.id === currentUser.uid;
+    const unreadCount = unreadMessageCounts[user.id] || 0;
+
+    userCard.innerHTML = `
+      <div class="user-avatar-container">
+        <img class="user-avatar" src="${user.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${user.username}`}" alt="Avatar">
+        <div class="online-indicator ${isOnline ? 'online' : ''}"></div>
+      </div>
+      <div class="user-info">
+        <h4>
+          ${user.username}
+          ${isNewUser && !isMe ? `<span class="new-user-badge">جديد</span>` : ''}
+        </h4>
+        <div class="user-status">${user.status || ''}</div>
+      </div>
+      <div class="unread-count ${unreadCount > 0 ? 'show' : ''}">${unreadCount > 99 ? '99+' : unreadCount}</div>
+    `;
+
+    userCard.addEventListener('click', () => {
+      if (blockedUsers.has(user.id)) {
+        alert("لا يمكنك الدردشة مع مستخدم محظور.");
+        return;
+      }
+      currentChatUser = user;
+      updateChatHeader();
+      showChat();
+      loadMessages();
+      renderUsersList();
+    });
+
+    return userCard;
+  };
+
+  // عرض قائمة المستخدمين
+  const renderUsersList = () => {
+    usersList.innerHTML = '';
+    const sortedUsers = Object.values(usersData).filter(user => user.id !== currentUser.uid).sort((a, b) => {
+        const aLastMessageTime = lastMessageTimes[a.id] || 0;
+        const bLastMessageTime = lastMessageTimes[b.id] || 0;
+        return bLastMessageTime - aLastMessageTime;
+    });
+
+    sortedUsers.forEach(user => {
+        usersList.appendChild(createUserCard(user));
+    });
+
+    usersCountSpan.textContent = `(${Object.keys(usersData).length - 1} مستخدم)`;
+  };
+
+  // تحديث رأس المحادثة
+  const updateChatHeader = () => {
+    if (currentChatUser) {
+      chatUserAvatar.src = currentChatUser.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${currentChatUser.username}`;
+      chatUserName.textContent = currentChatUser.username;
+      chatUserStatus.textContent = onlineUsers.has(currentChatUser.id) ? 'متصل الآن' : 'غير متصل';
+      blockUserBtn.textContent = blockedUsers.has(currentChatUser.id) ? 'إلغاء الحظر' : '🚫 حظر';
+    }
+  };
+  
+  // عرض الرسالة
+  const displayMessage = (message, messageId) => {
+    if (message.deletedFor && message.deletedFor.includes(currentUser.uid)) {
+      return;
+    }
+
+    const messageWrapper = document.createElement('div');
+    messageWrapper.className = `message-wrapper ${message.senderId === currentUser.uid ? 'sent' : 'received'}`;
+    messageWrapper.dataset.messageId = messageId;
+    messageWrapper.dataset.senderId = message.senderId;
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message';
+
+    let contentHTML = '';
+    if (message.type === 'text') {
+        contentHTML = `<div class="message-content">${message.text}</div>`;
+    } else if (message.type === 'image') {
+        contentHTML = `<div class="message-media"><img src="${message.mediaUrl}" alt="صورة"></div>`;
+    } else if (message.type === 'video') {
+        contentHTML = `<div class="message-media"><video src="${message.mediaUrl}" controls></video></div>`;
+    }
+    
+    messageDiv.innerHTML = `
+      ${contentHTML}
+      <div class="message-time">${formatTimestamp(message.timestamp)}</div>
+    `;
+
+    messageWrapper.appendChild(messageDiv);
+    messagesArea.appendChild(messageWrapper);
+    messagesArea.scrollTop = messagesArea.scrollHeight;
+  };
+  
+  // دالة لتحميل الرسائل
+  const loadMessages = async () => {
+    if (!currentChatUser) {
+      messagesArea.innerHTML = `
+        <div class="empty-state">
+          <div class="icon">💬</div>
+          <p>اختر محادثة لبدء الدردشة</p>
+        </div>
+      `;
+      return;
+    }
+    const chatId = getChatId(currentUser.uid, currentChatUser.id);
+    messagesArea.innerHTML = '';
+    listenForMessages(chatId);
+  };
+
+  // وظائف إرسال واستقبال الرسائل
+  // =========================================================================================
+
+  // إرسال رسالة
+  const sendMessage = async (messageText, mediaUrl = null, type = 'text') => {
+    if (!currentChatUser) return;
+    const chatId = getChatId(currentUser.uid, currentChatUser.id);
+    const message = {
+      senderId: currentUser.uid,
+      receiverId: currentChatUser.id,
+      text: messageText,
+      timestamp: serverTimestamp(),
+      type: type,
+      mediaUrl: mediaUrl,
+      deletedFor: []
+    };
+    try {
+      await addDoc(collection(db, 'chats', chatId, 'messages'), message);
+      messageInput.value = '';
+      messagesArea.scrollTop = messagesArea.scrollHeight;
+      // زيادة عداد الرسائل غير المقروءة للمستلم
+      incrementUnreadCount(currentChatUser.id, currentUser.uid);
+    } catch (error) {
+      console.error("خطأ في إرسال الرسالة:", error);
+    }
+  };
+
+  // رفع الوسائط
+  const uploadMedia = async (file) => {
+      const mediaRef = ref(storage, `chat_media/${file.name}_${new Date().getTime()}`);
+      const uploadTask = uploadBytesResumable(mediaRef, file);
+
+      uploadTask.on('state_changed',
+          (snapshot) => {
+              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+              console.log('Upload is ' + progress + '% done');
+          },
+          (error) => {
+              console.error("Upload failed", error);
+              alert("فشل رفع الملف!");
+          },
+          () => {
+              getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                  console.log('File available at', downloadURL);
+                  sendMessage('تم إرسال ملف وسائط', downloadURL, file.type.startsWith('image') ? 'image' : 'video');
+              });
+          }
+      );
+  };
+
+  // وظائف مساعدة
+  // =========================================================================================
+  
+  // توليد هوية الدردشة
+  const getChatId = (uid1, uid2) => {
+    return uid1 < uid2 ? uid1 + '_' + uid2 : uid2 + '_' + uid1;
+  };
+  
+  // تنسيق الوقت
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return '';
+    const date = timestamp.toDate();
+    return date.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+  };
+  
+  // التعامل مع المستخدمين المحظورين
+  const listenForBlockedUsers = () => {
+    if (!currentUser) return;
+    const userDocRef = doc(db, 'users', currentUser.uid);
+    onSnapshot(userDocRef, (doc) => {
+      if (doc.exists()) {
+        blockedUsers = new Set(doc.data().isBlocked || []);
+        renderUsersList();
+      }
+    });
+  };
+
+  // حظر المستخدم
+  const toggleBlockUser = async () => {
+    if (!currentUser || !currentChatUser) return;
+    const userDocRef = doc(db, 'users', currentUser.uid);
+    if (blockedUsers.has(currentChatUser.id)) {
+      // إلغاء الحظر
+      const newBlockedList = Array.from(blockedUsers).filter(id => id !== currentChatUser.id);
+      await updateDoc(userDocRef, { isBlocked: newBlockedList });
+    } else {
+      // حظر
+      await updateDoc(userDocRef, { isBlocked: arrayUnion(currentChatUser.id) });
+    }
+  };
+
+  // تحديث حالة الكتابة
+  const updateTypingStatus = async (isTyping) => {
+    if (!currentUser || !currentChatUser) return;
+    const chatId = getChatId(currentUser.uid, currentChatUser.id);
+    const typingDocRef = doc(db, 'chats', chatId, 'typing', currentUser.uid);
+    if (isTyping) {
+      await setDoc(typingDocRef, { isTyping: true, username: usersData[currentUser.uid].username });
+      if (typingTimeout) clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(async () => {
+        await setDoc(typingDocRef, { isTyping: false });
+      }, 3000); // إيقاف حالة الكتابة بعد 3 ثوانٍ من التوقف
+    } else {
+      await setDoc(typingDocRef, { isTyping: false });
+    }
+  };
+
+  // الاستماع لحالة الكتابة
+  const listenForTypingStatus = () => {
+    if (!currentUser || !currentChatUser) return;
+    const chatId = getChatId(currentUser.uid, currentChatUser.id);
+    const typingCollectionRef = collection(db, 'chats', chatId, 'typing');
+    onSnapshot(typingCollectionRef, (snapshot) => {
+      typingUsers.clear();
+      snapshot.docs.forEach(doc => {
+        const typingData = doc.data();
+        if (typingData.isTyping && doc.id !== currentUser.uid) {
+          typingUsers.set(doc.id, typingData.username);
+        }
+      });
+      renderTypingIndicator();
+    });
+  };
+
+  // عرض مؤشر الكتابة
+  const renderTypingIndicator = () => {
+    const typingUserNames = Array.from(typingUsers.values());
+    if (typingUserNames.length > 0) {
+      typingUserSpan.textContent = typingUserNames.join(', ');
+      typingIndicator.style.display = 'block';
+    } else {
+      typingIndicator.style.display = 'none';
+    }
+  };
+
+  // وظائف الأحداث
+  // =========================================================================================
+
+  // حالة المصادقة
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      updateUIOnLogin(user);
+    } else {
+      showAuth();
+    }
+  });
+
+  // حدث زر المصادقة
+  submitBtn.addEventListener('click', () => {
+    const email = emailInput.value;
+    const password = passwordInput.value;
+    const username = usernameInput.value;
+    const status = statusInput.value;
+
+    if (isLogin) {
+      login(email, password);
+    } else {
+      if (username) {
+        signup(email, password, username, status);
+      } else {
+        errorMsg.textContent = "الاسم مطلوب لإنشاء حساب.";
+      }
+    }
+  });
+
+  // تبديل بين تسجيل الدخول وإنشاء حساب
+  toggleFormBtn.addEventListener('click', () => {
+    isLogin = !isLogin;
+    if (isLogin) {
+      formTitle.textContent = "💬 تسجيل الدخول";
+      submitBtn.textContent = "تسجيل الدخول";
+      toggleFormBtn.textContent = "إنشاء حساب جديد";
+      usernameInput.style.display = 'none';
+      statusInput.style.display = 'none';
+    } else {
+      formTitle.textContent = "💬 إنشاء حساب جديد";
+      submitBtn.textContent = "إنشاء حساب";
+      toggleFormBtn.textContent = "لديك حساب بالفعل؟";
+      usernameInput.style.display = 'block';
+      statusInput.style.display = 'block';
+    }
+    errorMsg.textContent = '';
+  });
+  
+  // إرسال الرسالة
+  sendBtn.addEventListener('click', () => {
+    if (messageInput.value.trim() !== '') {
+      sendMessage(messageInput.value);
+    }
+  });
+  
+  // إرسال الرسالة عند الضغط على Enter
+  messageInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendBtn.click();
+    }
+  });
+  
+  // تحديث حالة الكتابة عند الكتابة في حقل الرسائل
+  messageInput.addEventListener('input', () => {
+    updateTypingStatus(messageInput.value.trim().length > 0);
+  });
+
+  // الرجوع من المحادثة
+  backBtn.addEventListener('click', showUsersList);
+
+  // إظهار وإخفاء قائمة الإعدادات
+  menuBtn.addEventListener('click', () => {
     dropdownMenu.style.display = dropdownMenu.style.display === 'flex' ? 'none' : 'flex';
   });
 
   // إخفاء القائمة عند النقر خارجها
-  document.addEventListener('click', (event) => {
-    if (!dropdownMenu.contains(event.target) && event.target !== menuBtn && !menuBtn.contains(event.target)) {
-        dropdownMenu.style.display = 'none';
+  document.addEventListener('click', (e) => {
+    if (!menuBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
+      dropdownMenu.style.display = 'none';
     }
   });
 
-  // إضافة زر "تحميل التطبيق"
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    installAppBtn.style.display = 'flex';
-  });
+  // تسجيل الخروج
+  logoutBtn.addEventListener('click', logout);
 
-  installAppBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    dropdownMenu.style.display = 'none';
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then((choiceResult) => {
-        if (choiceResult.outcome === 'accepted') {
-          console.log('User accepted the install prompt');
-        } else {
-          console.log('User dismissed the install prompt');
-        }
-        deferredPrompt = null;
-      });
-    }
-  });
+  // حذف الحساب
+  deleteAccountBtn.addEventListener('click', deleteAccount);
 
-  // وظيفة إظهار الإشعار الترحيبي
-  function showWelcomeModal() {
-    if (!sessionStorage.getItem('welcomeModalShown')) {
-      const username = usersData[currentUser.uid]?.username || "ضيف";
-      welcomeUsername.textContent = username;
-      welcomeModal.style.display = 'flex';
-      welcomeModalOkBtn.addEventListener('click', () => {
-        welcomeModal.style.display = 'none';
-        sessionStorage.setItem('welcomeModalShown', 'true');
-      });
-    }
-  }
-
-  // تحديث حالة الاتصال
-  function updateUserPresence(online) {
-    if (!currentUser) return;
-    
-    const userRef = doc(db, "users", currentUser.uid);
-    updateDoc(userRef, {
-      online: online,
-      lastSeen: serverTimestamp()
-    }).catch(console.error);
-  }
-
-  // مراقبة حالة النافذة
-  document.addEventListener('visibilitychange', () => {
-    if (currentUser) {
-      updateUserPresence(!document.hidden);
-    }
-  });
-
-  // تحديث حالة الاتصال عند الخروج
-  window.addEventListener('beforeunload', () => {
-    if (currentUser) {
-      updateUserPresence(false);
-    }
-  });
-
-  // تبديل نماذج تسجيل الدخول
-  toggleFormBtn.addEventListener('click', () => {
-    isLogin = !isLogin;
-    errorMsg.textContent = '';
-    
-    if (isLogin) {
-      formTitle.innerHTML = '💬 مرحباً بك في ChatPro';
-      submitBtn.textContent = 'تسجيل الدخول';
-      toggleFormBtn.textContent = 'إنشاء حساب جديد';
-      usernameInput.style.display = 'none';
-      statusInput.style.display = 'none';
-    } else {
-      formTitle.innerHTML = '🚀 انضم إلى ChatPro';
-      submitBtn.textContent = 'إنشاء حساب';
-      toggleFormBtn.textContent = 'لدي حساب بالفعل';
-      usernameInput.style.display = 'block';
-      statusInput.style.display = 'block';
-    }
-  });
-
-  // تسجيل الدخول/إنشاء حساب
-  submitBtn.addEventListener('click', async () => {
-    errorMsg.textContent = '';
-    const email = emailInput.value.trim();
-    const password = passwordInput.value.trim();
-    const username = usernameInput.value.trim();
-    const status = statusInput.value.trim() || "متاح للدردشة 💬";
-
-    if (!email || !password || (!isLogin && !username)) {
-      errorMsg.textContent = '⚠️ يرجى تعبئة جميع الحقول المطلوبة';
-      return;
-    }
-
-    try {
-      submitBtn.innerHTML = '<div class="loading-spinner"></div>';
-      
-      if (isLogin) {
-        await signInWithEmailAndPassword(auth, email, password);
-      } else {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        
-        await setDoc(doc(db, "users", user.uid), {
-          email: user.email,
-          username,
-          status,
-          photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=6a11cb&color=fff&rounded=true&size=128`,
-          online: true,
-          lastSeen: serverTimestamp(),
-          createdAt: serverTimestamp(),
-          blockedUsers: [],
-          seenUsers: [] // إضافة حقل المستخدمين الذين تمت رؤيتهم
-        });
-      }
-    } catch (error) {
-      errorMsg.textContent = getErrorMessage(error.code);
-      submitBtn.textContent = isLogin ? 'تسجيل الدخول' : 'إنشاء حساب';
-    }
-  });
-
-  // رسائل الخطأ بالعربية
-  function getErrorMessage(errorCode) {
-    const errors = {
-      'auth/email-already-in-use': '📧 هذا البريد مستخدم مسبقاً',
-      'auth/weak-password': '🔒 كلمة المرور ضعيفة (6 أحرف على الأقل)',
-      'auth/user-not-found': '👤 المستخدم غير موجود',
-      'auth/wrong-password': '🔒 كلمة المرور خاطئة',
-      'auth/invalid-email': '📧 البريد الإلكتروني غير صحيح',
-      'auth/too-many-requests': '⏰ محاولات كثيرة، حاول لاحقاً'
-    };
-    return errors[errorCode] || '❌ حدث خطأ، حاول مرة أخرى';
-  }
-
-  // دالة لجلب وعرض المستخدمين
-  async function fetchAndDisplayUsers() {
-    if (unsubscribeUsers) {
-        unsubscribeUsers();
-    }
-    const q = query(collection(db, "users"));
-    unsubscribeUsers = onSnapshot(q, (snapshot) => {
-        usersCountElement.textContent = `(${snapshot.docs.length - 1} مستخدم)`;
-        
-        snapshot.docChanges().forEach(change => {
-            const user = { uid: change.doc.id, ...change.doc.data() };
-            if (user.uid === currentUser.uid) {
-                usersData[user.uid] = user;
-                return;
-            }
-
-            if (change.type === "added") {
-                usersData[user.uid] = user;
-                // إزالة السطر القديم الذي يضيف المستخدم الجديد لمجموعة مؤقتة
-            } else if (change.type === "modified") {
-                usersData[user.uid] = user;
-            } else if (change.type === "removed") {
-                delete usersData[user.uid];
-            }
-        });
-        updateUsersListUI();
-    });
-  }
-
-  // دالة لمراقبة الرسائل غير المقروءة
-  function listenForUnreadMessages() {
-    if (unsubscribeUnreadCounts) {
-      unsubscribeUnreadCounts();
-    }
-
-    const messagesRef = collection(db, "messages");
-    const q = query(messagesRef, where("receiverId", "==", currentUser.uid), where("read", "==", false));
-
-    unsubscribeUnreadCounts = onSnapshot(q, (snapshot) => {
-      const newUnreadCounts = {};
-      snapshot.forEach(doc => {
-        const message = doc.data();
-        const senderId = message.senderId;
-        newUnreadCounts[senderId] = (newUnreadCounts[senderId] || 0) + 1;
-      });
-      unreadMessageCounts = newUnreadCounts;
-      updateUsersListUI();
-    });
-  }
-
-  // دالة لمراقبة آخر وقت رسالة
-  function listenForLastMessageTimes() {
-      const messagesRef = collection(db, "messages");
-      const q = query(messagesRef, where("chatId", "array-contains", currentUser.uid));
-      onSnapshot(messagesRef, (snapshot) => {
-          snapshot.docChanges().forEach(change => {
-              if (change.type === "added" || change.type === "modified") {
-                  const message = change.doc.data();
-                  const otherUserId = message.senderId === currentUser.uid ? message.receiverId : message.senderId;
-                  lastMessageTimes[otherUserId] = message.timestamp;
-                  updateUsersListUI();
-              }
-          });
-      });
-  }
-
-  // دالة لتحديث قائمة المستخدمين على الواجهة بالكامل
-  function updateUsersListUI() {
-    usersList.replaceChildren();
-
-    const usersArray = Object.values(usersData).filter(user => user.uid !== currentUser.uid);
-
-    // فرز المستخدمين
-    usersArray.sort((a, b) => {
-        const timeA = lastMessageTimes[a.uid] ? lastMessageTimes[a.uid].toMillis() : 0;
-        const timeB = lastMessageTimes[b.uid] ? lastMessageTimes[b.uid].toMillis() : 0;
-        return timeB - timeA;
-    });
-
-    const welcomeMessage = document.querySelector('.welcome-message');
-    if (usersArray.length > 0) {
-        if (welcomeMessage) welcomeMessage.style.display = 'none';
-    } else {
-        if (welcomeMessage) welcomeMessage.style.display = 'block';
-    }
-
-    usersArray.forEach(user => {
-      const userCard = document.createElement('div');
-      userCard.className = 'user-card';
-      userCard.dataset.uid = user.uid;
-
-      if (currentChatUser && user.uid === currentChatUser.uid) {
-        userCard.classList.add('active');
-      }
-
-      const unreadCount = unreadMessageCounts[user.uid] || 0;
-      // تغيير في هذا السطر
-      const isNewUser = !seenUsersSet.has(user.uid); 
-      const usernameHtml = `<span class="${isNewUser ? 'new-user-text' : ''}">${user.username}</span> ${isNewUser ? '<span class="new-user-badge">جديد</span>' : ''}`;
-
-
-      userCard.innerHTML = `
-        <div class="user-avatar-container">
-          <img class="user-avatar" src="${user.photoURL}" alt="${user.username}" />
-          <div class="online-indicator ${user.online ? 'online' : ''}"></div>
-        </div>
-        <div class="user-info">
-            <h4>${usernameHtml}</h4>
-            <p class="user-status">${user.status}</p>
-        </div>
-        <div class="unread-count ${unreadCount > 0 ? 'show' : ''}">${unreadCount}</div>
-      `;
-
-      userCard.addEventListener('click', () => {
-        startChat(user);
-      });
-
-      usersList.appendChild(userCard);
-    });
-  }
-
-  // دالة لجلب وعرض الرسائل
-  function fetchAndDisplayMessages() {
-      if (unsubscribeMessages) {
-          unsubscribeMessages();
-      }
-
-      const chatId = getChatId(currentUser.uid, currentChatUser.uid);
-      const messagesRef = collection(db, "messages");
-      const q = query(messagesRef, where("chatId", "==", chatId), orderBy("timestamp"));
-
-      unsubscribeMessages = onSnapshot(q, (snapshot) => {
-          messagesArea.replaceChildren();
-          const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          messages.forEach(message => displayMessage(message));
-          messagesArea.scrollTop = messagesArea.scrollHeight;
-      });
-
-      const unreadQuery = query(messagesRef, where("receiverId", "==", currentUser.uid), where("senderId", "==", currentChatUser.uid), where("read", "==", false));
-      getDocs(unreadQuery).then(snapshot => {
-        snapshot.forEach(doc => {
-          updateDoc(doc.ref, { read: true });
-        });
-      });
-  }
-
-  // دالة لإنشاء وعرض رسالة واحدة
-  function displayMessage(messageData) {
-      const messageWrapper = document.createElement('div');
-      messageWrapper.className = `message-wrapper ${messageData.senderId === currentUser.uid ? 'sent' : 'received'}`;
-      messageWrapper.dataset.id = messageData.id;
-      
-      const messageElement = document.createElement('div');
-      messageElement.className = 'message';
-      if (messageData.senderId === currentUser.uid) {
-        messageElement.classList.add('sent');
-      } else {
-        messageElement.classList.add('received');
-      }
-
-      let messageContent = '';
-      if (messageData.text) {
-          messageContent += `<p class="message-content">${messageData.text}</p>`;
-      }
-      if (messageData.mediaURL) {
-          if (messageData.mediaType.startsWith('image')) {
-              messageContent += `<div class="message-media"><img src="${messageData.mediaURL}" alt="Media" /></div>`;
-          } else if (messageData.mediaType.startsWith('video')) {
-              messageContent += `<div class="message-media"><video src="${messageData.mediaURL}" controls></video></div>`;
-          }
-      }
-
-      const time = messageData.timestamp ? new Date(messageData.timestamp.toDate()).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : 'الآن';
-      messageContent += `<span class="message-time">${time}</span>`;
-      
-      messageElement.innerHTML = messageContent;
-      messageWrapper.appendChild(messageElement);
-
-      const options = document.createElement('div');
-      options.className = 'message-options';
-      
-      const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'message-option';
-      deleteBtn.innerHTML = '🗑️';
-      deleteBtn.onclick = () => {
-        messageToDelete = messageData;
-        showModal('deleteMessageModal');
-      };
-
-      options.appendChild(deleteBtn);
-      messageWrapper.appendChild(options);
-      
-      messagesArea.appendChild(messageWrapper);
-  }
-
-  // دالة لإنشاء معرف المحادثة
-  function getChatId(userId1, userId2) {
-      return userId1 < userId2 ? `${userId1}_${userId2}` : `${userId2}_${userId1}`;
-  }
-
-  // دالة لبدء محادثة مع مستخدم معين
-  async function startChat(user) {
-    const emptyState = document.querySelector('#messagesArea .empty-state');
-    if (emptyState) {
-        emptyState.style.display = 'none';
-    }
-
-    currentChatUser = user;
-    
-    // إضافة معرف المستخدم إلى قائمة المستخدمين الذين تمت رؤيتهم
-    if (!seenUsersSet.has(user.uid)) {
-        seenUsersSet.add(user.uid);
-        const userRef = doc(db, 'users', currentUser.uid);
-        await updateDoc(userRef, {
-            seenUsers: arrayUnion(user.uid)
-        });
-        updateUsersListUI();
-    }
-
-    document.getElementById('chatUserName').textContent = user.username;
-    document.getElementById('chatUserStatus').textContent = user.status;
-    document.getElementById('chatUserAvatar').src = user.photoURL;
-
-    usersListContainer.style.display = 'none';
-    chatContainer.style.display = 'flex';
-
-    const activeUserCard = document.querySelector('.user-card.active');
-    if (activeUserCard) {
-        activeUserCard.classList.remove('active');
-    }
-    
-    const userCardToActivate = document.querySelector(`.user-card[data-uid="${user.uid}"]`);
-    if (userCardToActivate) {
-        userCardToActivate.classList.add('active');
-    }
-
-    fetchAndDisplayMessages();
-    updateUsersListUI();
-  }
-
-  // دالة لإرسال رسالة
-  async function sendMessage(text, mediaURL = null, mediaType = null) {
-      if (!currentChatUser) return;
-
-      const chatId = getChatId(currentUser.uid, currentChatUser.uid);
-
-      await addDoc(collection(db, "messages"), {
-          chatId: [currentUser.uid, currentChatUser.uid], // استخدام مصفوفة لتحسين الاستعلامات
-          senderId: currentUser.uid,
-          receiverId: currentChatUser.uid,
-          text,
-          mediaURL,
-          mediaType,
-          read: false,
-          timestamp: serverTimestamp()
-      });
-  }
-
-  // إضافة مستمع لزر الإرسال
-  sendBtn.addEventListener('click', () => {
-    const text = messageInput.value.trim();
-    if (text) {
-      sendMessage(text);
-      messageInput.value = '';
-    }
-  });
-
-  // إضافة مستمع لزر الرجوع
-  backBtn.addEventListener('click', () => {
-    chatContainer.style.display = 'none';
-    usersListContainer.style.display = 'flex';
-
-    const activeUserCard = document.querySelector('.user-card.active');
-    if (activeUserCard) {
-        activeUserCard.classList.remove('active');
-    }
-    
-    if (unsubscribeMessages) {
-        unsubscribeMessages();
-        unsubscribeMessages = null;
-    }
-  });
-
-  // مودال حذف الرسالة
-  deleteForMeBtn.addEventListener('click', async () => {
-      if (messageToDelete) {
-          const docRef = doc(db, "messages", messageToDelete.id);
-          await deleteDoc(docRef);
-          closeModal('deleteMessageModal');
-          messageToDelete = null;
-      }
-  });
-
-  deleteForAllBtn.addEventListener('click', async () => {
-      if (messageToDelete) {
-          const docRef = doc(db, "messages", messageToDelete.id);
-          await deleteDoc(docRef);
-          closeModal('deleteMessageModal');
-          messageToDelete = null;
-      }
-  });
-
-  cancelDeleteBtn.addEventListener('click', () => {
-      closeModal('deleteMessageModal');
-      messageToDelete = null;
-  });
-
-  // دالة لإظهار المودال
-  function showModal(modalId) {
-      const modal = document.getElementById(modalId);
-      if (modalId === 'deleteMessageModal' && messageToDelete) {
-          const deleteForAllBtn = document.getElementById('deleteForAllBtn');
-          if (messageToDelete.senderId === currentUser.uid) {
-              deleteForAllBtn.style.display = 'inline-block';
-          } else {
-              deleteForAllBtn.style.display = 'none';
-          }
-      }
-      modal.style.display = 'flex';
-  }
-
-  // دالة لإخفاء المودال
-  function closeModal(modalId) {
-      const modal = document.getElementById(modalId);
-      modal.style.display = 'none';
-  }
-
-  // معالجات الأحداث الجديدة
-  document.getElementById('editProfileBtn').addEventListener('click', () => {
-    dropdownMenu.style.display = 'none';
-    if (currentUser && usersData[currentUser.uid]) {
-      const userData = usersData[currentUser.uid];
-      editUsernameInput.value = userData.username;
-      editStatusInput.value = userData.status;
-      showModal('editProfileModal');
-    }
-  });
+  // حظر المستخدم
+  blockUserBtn.addEventListener('click', toggleBlockUser);
   
+  // فتح مودال تعديل الملف الشخصي
+  editProfileBtn.addEventListener('click', () => {
+    hideModal(dropdownMenu);
+    editUsernameInput.value = currentUsernameSpan.textContent;
+    editStatusInput.value = currentUserStatusSpan.textContent;
+    showModal(editProfileModal);
+  });
+
+  // حفظ تعديل الملف الشخصي
   saveProfileBtn.addEventListener('click', async () => {
-    if (!currentUser) return;
     const newUsername = editUsernameInput.value.trim();
-    const newStatus = editStatusInput.value.trim() || 'متاح للدردشة 💬';
-    
-    if (!newUsername) {
-      alert('الاسم لا يمكن أن يكون فارغاً.');
-      return;
-    }
-    
-    try {
-      const userRef = doc(db, 'users', currentUser.uid);
-      await updateDoc(userRef, {
+    const newStatus = editStatusInput.value.trim();
+    if (newUsername) {
+      await updateDoc(doc(db, 'users', currentUser.uid), {
         username: newUsername,
         status: newStatus,
-        photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(newUsername)}&background=6a11cb&color=fff&rounded=true&size=128`
+        avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${newUsername}`
       });
-      alert('تم حفظ التعديلات بنجاح!');
-      closeModal('editProfileModal');
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      alert('حدث خطأ أثناء حفظ التعديلات.');
+      currentUsernameSpan.textContent = newUsername;
+      currentUserStatusSpan.textContent = newStatus;
+      userAvatarImg.src = `https://api.dicebear.com/7.x/initials/svg?seed=${newUsername}`;
+      hideModal(editProfileModal);
+      alert("تم حفظ التعديلات بنجاح!");
     }
   });
 
-  cancelProfileBtn.addEventListener('click', () => {
-    closeModal('editProfileModal');
+  // إلغاء تعديل الملف الشخصي
+  cancelProfileBtn.addEventListener('click', () => hideModal(editProfileModal));
+
+  // فتح مودال إعدادات الإشعارات
+  notificationSettingsBtn.addEventListener('click', () => {
+    hideModal(dropdownMenu);
+    enableNotificationsCheckbox.checked = notificationsEnabled;
+    enableSoundsCheckbox.checked = soundsEnabled;
+    showModal(notificationModal);
+  });
+  
+  // حفظ إعدادات الإشعارات
+  saveNotificationBtn.addEventListener('click', () => {
+    notificationsEnabled = enableNotificationsCheckbox.checked;
+    soundsEnabled = enableSoundsCheckbox.checked;
+    localStorage.setItem('notificationsEnabled', notificationsEnabled);
+    localStorage.setItem('soundsEnabled', soundsEnabled);
+    hideModal(notificationModal);
+    alert("تم حفظ إعدادات الإشعارات بنجاح!");
   });
 
-  document.getElementById('logoutBtn').addEventListener('click', async () => {
-    dropdownMenu.style.display = 'none';
-    if (currentUser) {
-      await updateUserPresence(false);
-      await signOut(auth);
+  // إلغاء إعدادات الإشعارات
+  cancelNotificationBtn.addEventListener('click', () => hideModal(notificationModal));
+  
+  // عند النقر على رسالة لحذفها
+  messagesArea.addEventListener('click', (e) => {
+    const messageWrapper = e.target.closest('.message-wrapper');
+    if (messageWrapper) {
+      messageToDelete = {
+        id: messageWrapper.dataset.messageId,
+        senderId: messageWrapper.dataset.senderId
+      };
+      // عرض خيار الحذف للجميع إذا كانت رسالتك
+      if (messageToDelete.senderId === currentUser.uid) {
+        deleteForAllBtn.style.display = 'inline-block';
+      } else {
+        deleteForAllBtn.style.display = 'none';
+      }
+      showModal(deleteMessageModal);
+    }
+  });
+
+  // حذف الرسالة لدي فقط
+  deleteForMeBtn.addEventListener('click', async () => {
+    if (!messageToDelete) return;
+    const chatId = getChatId(currentUser.uid, currentChatUser.id);
+    const messageDocRef = doc(db, 'chats', chatId, 'messages', messageToDelete.id);
+    await updateDoc(messageDocRef, {
+      deletedFor: arrayUnion(currentUser.uid)
+    });
+    hideModal(deleteMessageModal);
+  });
+  
+  // حذف الرسالة للجميع
+  deleteForAllBtn.addEventListener('click', async () => {
+    if (!messageToDelete) return;
+    const chatId = getChatId(currentUser.uid, currentChatUser.id);
+    const messageDocRef = doc(db, 'chats', chatId, 'messages', messageToDelete.id);
+    await deleteDoc(messageDocRef);
+    hideModal(deleteMessageModal);
+  });
+
+  // إلغاء الحذف
+  cancelDeleteBtn.addEventListener('click', () => hideModal(deleteMessageModal));
+
+  // وظائف رفع الوسائط
+  // =========================================================================================
+
+  cameraBtn.addEventListener('click', () => cameraInput.click());
+  galleryBtn.addEventListener('click', () => imageInput.click());
+  videoBtn.addEventListener('click', () => videoInput.click());
+  
+  imageInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      selectedMedia = file;
+      showMediaPreview(URL.createObjectURL(file), 'image');
+    }
+  });
+
+  videoInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      selectedMedia = file;
+      showMediaPreview(URL.createObjectURL(file), 'video');
+    }
+  });
+
+  cameraInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      selectedMedia = file;
+      showMediaPreview(URL.createObjectURL(file), 'image');
     }
   });
   
-  document.getElementById('deleteAccountBtn').addEventListener('click', async () => {
-      dropdownMenu.style.display = 'none';
-      if (currentUser) {
-          const confirmation = confirm('هل أنت متأكد من رغبتك في حذف حسابك؟ هذا الإجراء لا يمكن التراجع عنه!');
-          if (confirmation) {
-              try {
-                  // Reauthenticate the user before deleting
-                  const credential = EmailAuthProvider.credential(currentUser.email, prompt('من فضلك أدخل كلمة المرور للتأكيد:'));
-                  await reauthenticateWithCredential(currentUser, credential);
-                  
-                  // Delete user document from Firestore
-                  await deleteDoc(doc(db, "users", currentUser.uid));
-                  
-                  // Delete user from Firebase Authentication
-                  await deleteUser(currentUser);
-                  
-                  alert('تم حذف الحساب بنجاح.');
-                  signOut(auth);
-              } catch (error) {
-                  alert('حدث خطأ: ' + getErrorMessage(error.code));
-              }
-          }
-      }
-  });
-
-  document.getElementById('blockedUsersBtn').addEventListener('click', () => {
-      dropdownMenu.style.display = 'none';
-      alert('لم يتم تنفيذ هذه الميزة بعد.');
-  });
-
-  document.getElementById('notificationSettingsBtn').addEventListener('click', () => {
-      dropdownMenu.style.display = 'none';
-      enableNotificationsCheckbox.checked = notificationsEnabled;
-      enableSoundsCheckbox.checked = soundsEnabled;
-      showModal('notificationModal');
-  });
-
-  saveNotificationBtn.addEventListener('click', () => {
-      notificationsEnabled = enableNotificationsCheckbox.checked;
-      soundsEnabled = enableSoundsCheckbox.checked;
-      localStorage.setItem('notificationsEnabled', notificationsEnabled);
-      localStorage.setItem('soundsEnabled', soundsEnabled);
-      alert('تم حفظ الإعدادات.');
-      closeModal('notificationModal');
-  });
-
-  cancelNotificationBtn.addEventListener('click', () => {
-      closeModal('notificationModal');
-  });
-
-  document.getElementById('aboutBtn').addEventListener('click', () => {
-      dropdownMenu.style.display = 'none';
-      alert('تطبيق ChatPro للمحادثات الفورية.\nتم تطويره باستخدام Firebase.');
-  });
-
-  document.getElementById('contactUsBtn').addEventListener('click', () => {
-      dropdownMenu.style.display = 'none';
-      alert('للتواصل، يرجى إرسال بريد إلكتروني إلى:\nsupport@chatpro.com');
-  });
-
-
-  // مراقبة حالة المصادقة (Auth State)
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      currentUser = user;
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        document.getElementById('currentUsername').textContent = userData.username;
-        document.getElementById('currentUserStatus').textContent = userData.status;
-        document.getElementById('userAvatar').src = userData.photoURL;
-
-        // تحديث مجموعة المستخدمين الذين تمت رؤيتهم
-        if (userData.seenUsers) {
-            seenUsersSet = new Set(userData.seenUsers);
-        } else {
-            seenUsersSet = new Set();
-        }
-
-        app_div.style.display = 'flex';
-        authContainer.style.display = 'none';
-        
-        updateUserPresence(true);
-        fetchAndDisplayUsers();
-        listenForUnreadMessages();
-        listenForLastMessageTimes();
-        
-        // إظهار الإشعار الترحيبي بعد تحميل بيانات المستخدم
-        showWelcomeModal();
-      } else {
-        signOut(auth);
-      }
-    } else {
-      currentUser = null;
-      authContainer.style.display = 'block';
-      app_div.style.display = 'none';
-      if (unsubscribeUsers) {
-        unsubscribeUsers();
-      }
-      if (unsubscribeUnreadCounts) {
-          unsubscribeUnreadCounts();
-      }
+  const showMediaPreview = (url, type) => {
+    previewMediaDiv.innerHTML = '';
+    if (type === 'image') {
+      const img = document.createElement('img');
+      img.src = url;
+      previewMediaDiv.appendChild(img);
+    } else if (type === 'video') {
+      const video = document.createElement('video');
+      video.src = url;
+      video.controls = true;
+      previewMediaDiv.appendChild(video);
     }
-    submitBtn.textContent = isLogin ? 'تسجيل الدخول' : 'إنشاء حساب';
+    showModal(mediaPreviewModal);
+  };
+  
+  sendMediaBtn.addEventListener('click', () => {
+    if (selectedMedia) {
+      uploadMedia(selectedMedia);
+      selectedMedia = null;
+      hideModal(mediaPreviewModal);
+    }
   });
+  
+  cancelMediaBtn.addEventListener('click', () => {
+    selectedMedia = null;
+    hideModal(mediaPreviewModal);
+  });
+  
+  // موافق على شاشة الترحيب
+  welcomeModalOkBtn.addEventListener('click', () => hideModal(welcomeModal));
 </script>
+
 </body>
   </html>
