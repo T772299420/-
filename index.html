@@ -380,6 +380,23 @@
       display: flex;
     }
 
+    /* شارة المستخدم الجديد */
+    .new-user-badge {
+        background-color: #e74c3c;
+        color: white;
+        border-radius: 8px;
+        padding: 2px 8px;
+        font-size: 10px;
+        font-weight: bold;
+        margin-right: 5px;
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    .new-user-text {
+        color: #e74c3c;
+    }
+    
     /* شاشة المحادثة */
     #chatContainer {
       flex: 1;
@@ -837,7 +854,7 @@
         transform: scale(1) translateY(0);
       }
     }
-
+    
     .modal h3 {
       margin-bottom: 20px;
       text-align: center;
@@ -1022,6 +1039,19 @@
       margin-bottom: 15px;
       opacity: 0.5;
     }
+
+    /* تنسيق إشعار الترحيب */
+    .welcome-content {
+      text-align: right;
+      line-height: 1.8;
+      font-size: 16px;
+      color: #555;
+    }
+
+    .cute-chat-name {
+      font-weight: bold;
+      color: #e74c3c;
+    }
   </style>
 </head>
 <body>
@@ -1186,6 +1216,26 @@
   </div>
 </div>
 
+<div class="modal" id="welcomeModal">
+  <div class="modal-content">
+    <div class="welcome-content">
+      عزيزنا العميل / <span id="welcomeUsername"></span><br>
+      نشكرك للانضمام إلى عائلة <span class="cute-chat-name">كيوت شات</span><br><br>
+      نلفت انتباهكم إلى أننا نعمل جاهدين لتزويد هذا التطبيق <span class="cute-chat-name">كيوت شات</span><br>
+      يعمل بدون إنترنت أو بيانات هاتف وسيكون التطبيق بإذن الله عز وجل متاحًا في أيدي الجميع، وسيتميز بإضافة الاتصالات الصوتية والاتصالات المرئية ومكالمة الفيديو المشتركة بإذن الله عز وجل.<br><br>
+      تنويه هام<br>
+      لن نتمكن من بلوغ الهدف بعد فضل الله علينا وفضلكم.
+    </div>
+    <div style="text-align: center; margin-top: 20px;">
+      مع تحيات المييز سوفت للأنظمة المحاسبية المتكاملة<br>
+      المدير العام / مروان محمد عبد الله الذماري
+    </div>
+    <div class="modal-buttons">
+      <button class="primary" id="welcomeModalOkBtn">موافق</button>
+    </div>
+  </div>
+</div>
+
 <input type="file" id="imageInput" accept="image/*" />
 <input type="file" id="videoInput" accept="video/*" />
 <input type="file" id="cameraInput" accept="image/*" capture="camera" />
@@ -1196,8 +1246,8 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, getDocs, doc, setDoc, deleteDoc, where, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, deleteUser, reauthenticateWithCredential, EmailAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, getDocs, doc, setDoc, deleteDoc, where, getDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
   const firebaseConfig = {
@@ -1224,7 +1274,7 @@
   let unreadMessageCounts = {};
   let lastMessageTimes = {};
   let usersData = {};
-  let newUsersSet = new Set();
+  let seenUsersSet = new Set(); // تم تغيير الاسم ليكون أكثر دقة
   let isLogin = true;
   let blockedUsers = new Set();
   let onlineUsers = new Set();
@@ -1266,6 +1316,21 @@
   const usersCountElement = document.getElementById('usersCount');
   const installAppBtn = document.getElementById('installAppBtn');
   let deferredPrompt;
+
+  // عناصر المودال
+  const editProfileModal = document.getElementById('editProfileModal');
+  const editUsernameInput = document.getElementById('editUsername');
+  const editStatusInput = document.getElementById('editStatus');
+  const saveProfileBtn = document.getElementById('saveProfileBtn');
+  const cancelProfileBtn = document.getElementById('cancelProfileBtn');
+  const notificationModal = document.getElementById('notificationModal');
+  const enableNotificationsCheckbox = document.getElementById('enableNotifications');
+  const enableSoundsCheckbox = document.getElementById('enableSounds');
+  const saveNotificationBtn = document.getElementById('saveNotificationBtn');
+  const cancelNotificationBtn = document.getElementById('cancelNotificationBtn');
+  const welcomeModal = document.getElementById('welcomeModal');
+  const welcomeUsername = document.getElementById('welcomeUsername');
+  const welcomeModalOkBtn = document.getElementById('welcomeModalOkBtn');
   
   // إضافة مستمع لزر القائمة
   menuBtn.addEventListener('click', (event) => {
@@ -1303,6 +1368,18 @@
     }
   });
 
+  // وظيفة إظهار الإشعار الترحيبي
+  function showWelcomeModal() {
+    if (!sessionStorage.getItem('welcomeModalShown')) {
+      const username = usersData[currentUser.uid]?.username || "ضيف";
+      welcomeUsername.textContent = username;
+      welcomeModal.style.display = 'flex';
+      welcomeModalOkBtn.addEventListener('click', () => {
+        welcomeModal.style.display = 'none';
+        sessionStorage.setItem('welcomeModalShown', 'true');
+      });
+    }
+  }
 
   // تحديث حالة الاتصال
   function updateUserPresence(online) {
@@ -1379,7 +1456,8 @@
           online: true,
           lastSeen: serverTimestamp(),
           createdAt: serverTimestamp(),
-          blockedUsers: []
+          blockedUsers: [],
+          seenUsers: [] // إضافة حقل المستخدمين الذين تمت رؤيتهم
         });
       }
     } catch (error) {
@@ -1419,10 +1497,7 @@
 
             if (change.type === "added") {
                 usersData[user.uid] = user;
-                newUsersSet.add(user.uid);
-                if (soundsEnabled) {
-                    notificationSound.play();
-                }
+                // إزالة السطر القديم الذي يضيف المستخدم الجديد لمجموعة مؤقتة
             } else if (change.type === "modified") {
                 usersData[user.uid] = user;
             } else if (change.type === "removed") {
@@ -1500,7 +1575,10 @@
       }
 
       const unreadCount = unreadMessageCounts[user.uid] || 0;
-      const isNewUser = newUsersSet.has(user.uid);
+      // تغيير في هذا السطر
+      const isNewUser = !seenUsersSet.has(user.uid); 
+      const usernameHtml = `<span class="${isNewUser ? 'new-user-text' : ''}">${user.username}</span> ${isNewUser ? '<span class="new-user-badge">جديد</span>' : ''}`;
+
 
       userCard.innerHTML = `
         <div class="user-avatar-container">
@@ -1508,7 +1586,7 @@
           <div class="online-indicator ${user.online ? 'online' : ''}"></div>
         </div>
         <div class="user-info">
-            <h4>${user.username} ${isNewUser ? '<span class="new-user-badge">جديد</span>' : ''}</h4>
+            <h4>${usernameHtml}</h4>
             <p class="user-status">${user.status}</p>
         </div>
         <div class="unread-count ${unreadCount > 0 ? 'show' : ''}">${unreadCount}</div>
@@ -1610,9 +1688,13 @@
 
     currentChatUser = user;
     
-    // إزالة شارة "جديد" عند بدء المحادثة
-    if (newUsersSet.has(user.uid)) {
-        newUsersSet.delete(user.uid);
+    // إضافة معرف المستخدم إلى قائمة المستخدمين الذين تمت رؤيتهم
+    if (!seenUsersSet.has(user.uid)) {
+        seenUsersSet.add(user.uid);
+        const userRef = doc(db, 'users', currentUser.uid);
+        await updateDoc(userRef, {
+            seenUsers: arrayUnion(user.uid)
+        });
         updateUsersListUI();
     }
 
@@ -1724,6 +1806,115 @@
       modal.style.display = 'none';
   }
 
+  // معالجات الأحداث الجديدة
+  document.getElementById('editProfileBtn').addEventListener('click', () => {
+    dropdownMenu.style.display = 'none';
+    if (currentUser && usersData[currentUser.uid]) {
+      const userData = usersData[currentUser.uid];
+      editUsernameInput.value = userData.username;
+      editStatusInput.value = userData.status;
+      showModal('editProfileModal');
+    }
+  });
+  
+  saveProfileBtn.addEventListener('click', async () => {
+    if (!currentUser) return;
+    const newUsername = editUsernameInput.value.trim();
+    const newStatus = editStatusInput.value.trim() || 'متاح للدردشة 💬';
+    
+    if (!newUsername) {
+      alert('الاسم لا يمكن أن يكون فارغاً.');
+      return;
+    }
+    
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      await updateDoc(userRef, {
+        username: newUsername,
+        status: newStatus,
+        photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(newUsername)}&background=6a11cb&color=fff&rounded=true&size=128`
+      });
+      alert('تم حفظ التعديلات بنجاح!');
+      closeModal('editProfileModal');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('حدث خطأ أثناء حفظ التعديلات.');
+    }
+  });
+
+  cancelProfileBtn.addEventListener('click', () => {
+    closeModal('editProfileModal');
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    dropdownMenu.style.display = 'none';
+    if (currentUser) {
+      await updateUserPresence(false);
+      await signOut(auth);
+    }
+  });
+  
+  document.getElementById('deleteAccountBtn').addEventListener('click', async () => {
+      dropdownMenu.style.display = 'none';
+      if (currentUser) {
+          const confirmation = confirm('هل أنت متأكد من رغبتك في حذف حسابك؟ هذا الإجراء لا يمكن التراجع عنه!');
+          if (confirmation) {
+              try {
+                  // Reauthenticate the user before deleting
+                  const credential = EmailAuthProvider.credential(currentUser.email, prompt('من فضلك أدخل كلمة المرور للتأكيد:'));
+                  await reauthenticateWithCredential(currentUser, credential);
+                  
+                  // Delete user document from Firestore
+                  await deleteDoc(doc(db, "users", currentUser.uid));
+                  
+                  // Delete user from Firebase Authentication
+                  await deleteUser(currentUser);
+                  
+                  alert('تم حذف الحساب بنجاح.');
+                  signOut(auth);
+              } catch (error) {
+                  alert('حدث خطأ: ' + getErrorMessage(error.code));
+              }
+          }
+      }
+  });
+
+  document.getElementById('blockedUsersBtn').addEventListener('click', () => {
+      dropdownMenu.style.display = 'none';
+      alert('لم يتم تنفيذ هذه الميزة بعد.');
+  });
+
+  document.getElementById('notificationSettingsBtn').addEventListener('click', () => {
+      dropdownMenu.style.display = 'none';
+      enableNotificationsCheckbox.checked = notificationsEnabled;
+      enableSoundsCheckbox.checked = soundsEnabled;
+      showModal('notificationModal');
+  });
+
+  saveNotificationBtn.addEventListener('click', () => {
+      notificationsEnabled = enableNotificationsCheckbox.checked;
+      soundsEnabled = enableSoundsCheckbox.checked;
+      localStorage.setItem('notificationsEnabled', notificationsEnabled);
+      localStorage.setItem('soundsEnabled', soundsEnabled);
+      alert('تم حفظ الإعدادات.');
+      closeModal('notificationModal');
+  });
+
+  cancelNotificationBtn.addEventListener('click', () => {
+      closeModal('notificationModal');
+  });
+
+  document.getElementById('aboutBtn').addEventListener('click', () => {
+      dropdownMenu.style.display = 'none';
+      alert('تطبيق ChatPro للمحادثات الفورية.\nتم تطويره باستخدام Firebase.');
+  });
+
+  document.getElementById('contactUsBtn').addEventListener('click', () => {
+      dropdownMenu.style.display = 'none';
+      alert('للتواصل، يرجى إرسال بريد إلكتروني إلى:\nsupport@chatpro.com');
+  });
+
+
   // مراقبة حالة المصادقة (Auth State)
   onAuthStateChanged(auth, async (user) => {
     if (user) {
@@ -1735,6 +1926,13 @@
         document.getElementById('currentUserStatus').textContent = userData.status;
         document.getElementById('userAvatar').src = userData.photoURL;
 
+        // تحديث مجموعة المستخدمين الذين تمت رؤيتهم
+        if (userData.seenUsers) {
+            seenUsersSet = new Set(userData.seenUsers);
+        } else {
+            seenUsersSet = new Set();
+        }
+
         app_div.style.display = 'flex';
         authContainer.style.display = 'none';
         
@@ -1742,6 +1940,9 @@
         fetchAndDisplayUsers();
         listenForUnreadMessages();
         listenForLastMessageTimes();
+        
+        // إظهار الإشعار الترحيبي بعد تحميل بيانات المستخدم
+        showWelcomeModal();
       } else {
         signOut(auth);
       }
