@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Build and Deploy
 
 on:
   push:
@@ -9,11 +9,27 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      # 1. سحب الكود
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # 2. تثبيت Node.js (إذا مشروعك يستخدم Node.js)
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      # 3. تثبيت الاعتمادات
+      - name: Install dependencies
+        run: npm install
+
+      # 4. بناء المشروع
+      - name: Build project
+        run: npm run build  # هذا سينشئ مجلد build أو dist
+
+      # 5. نشر المجلد الناتج على GitHub Pages
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./
+          publish_dir: ./dist  # ضع هنا المجلد الناتج من البناء
