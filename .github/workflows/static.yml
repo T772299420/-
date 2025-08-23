@@ -3,7 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main  # أو master، حسب اسم الفرع الرئيسي لديك
+      - main  # الفرع الرئيسي للمستودع
 
 jobs:
   build-and-deploy:
@@ -15,20 +15,26 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16' # يمكنك استخدام إصدار أحدث إذا لزم الأمر
+          node-version: '16' # يمكنك تغييره إذا أردت إصدار أحدث
 
       - name: Install dependencies (if any)
         run: |
-          npm install # إذا كان مشروعك يحتوي على ملف package.json
-          # أو يمكنك حذف هذا السطر إذا لم يكن هناك أي تبعيات
+          if [ -f package.json ]; then
+            npm install
+          else
+            echo "No dependencies to install."
+          fi
         
       - name: Build project (if a build step is needed)
-        # إذا كان لديك أمر بناء مثل 'npm run build'، ضعه هنا
-        # run: npm run build
-        run: echo "No build step required."
+        run: |
+          if [ -f package.json ] && grep -q '"build"' package.json; then
+            npm run build
+          else
+            echo "No build step required."
+          fi
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./  # هذا يعني نشر كل الملفات في المجلد الرئيسي
+          publish_dir: ./  # نشر الملفات من المجلد الرئيسي
