@@ -267,6 +267,15 @@
       background: #ffebee;
     }
 
+    .user-card.new-message {
+      animation: newMessagePulse 0.5s ease-in-out;
+    }
+
+    @keyframes newMessagePulse {
+      0% { background: var(--whatsapp-light-green); }
+      100% { background: white; }
+    }
+
     .user-avatar-container {
       position: relative;
       min-width: 48px;
@@ -299,6 +308,13 @@
 
     .online-indicator.online {
       display: block;
+      animation: onlinePulse 2s infinite;
+    }
+
+    @keyframes onlinePulse {
+      0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(37, 211, 102, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
     }
 
     .user-info {
@@ -328,10 +344,17 @@
       min-width: 18px;
       text-align: center;
       display: none;
+      animation: bounceIn 0.3s ease;
     }
 
     .unread-count.show {
       display: inline-block;
+    }
+
+    @keyframes bounceIn {
+      0% { transform: scale(0); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
     }
 
     .user-status {
@@ -499,6 +522,25 @@
       border-bottom-left-radius: 2px;
     }
 
+    .message.new {
+      animation: newMessage 0.5s ease-in-out;
+    }
+
+    @keyframes newMessage {
+      0% { 
+        opacity: 0;
+        transform: translateY(20px) scale(0.9);
+        background: #fff3cd;
+      }
+      50% {
+        transform: translateY(-5px) scale(1.02);
+      }
+      100% { 
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
     .message-content {
       margin-bottom: 4px;
       line-height: 1.4;
@@ -596,10 +638,12 @@
       align-items: center;
       justify-content: center;
       box-shadow: 0 1px 3px var(--shadow);
+      transition: all 0.2s ease;
     }
 
     #sendBtn:hover {
       background: var(--whatsapp-dark-green);
+      transform: scale(1.05);
     }
 
     /* معاينة الوسائط */
@@ -758,6 +802,62 @@
       font-size: 12px;
       background: var(--whatsapp-gray);
       display: none;
+      animation: typingPulse 1.5s infinite;
+    }
+
+    @keyframes typingPulse {
+      0%, 100% { opacity: 0.7; }
+      50% { opacity: 1; }
+    }
+
+    /* إشعار الرسالة الجديدة */
+    .new-message-notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: var(--whatsapp-green);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px var(--shadow);
+      z-index: 5000;
+      display: none;
+      animation: slideInRight 0.3s ease;
+      cursor: pointer;
+    }
+
+    .new-message-notification.show {
+      display: block;
+    }
+
+    @keyframes slideInRight {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    /* مؤشر الاتصال */
+    .connection-status {
+      position: fixed;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #f44336;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      z-index: 5000;
+      display: none;
+    }
+
+    .connection-status.connected {
+      background: var(--whatsapp-green);
     }
 
     /* تحسينات الجوال */
@@ -782,6 +882,13 @@
 
       .user-card {
         padding: 10px 12px;
+      }
+
+      .new-message-notification {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        transform: none;
       }
     }
 
@@ -897,6 +1004,16 @@
   </style>
 </head>
 <body>
+
+<!-- إشعار الرسالة الجديدة -->
+<div id="newMessageNotification" class="new-message-notification">
+  <div id="notificationContent"></div>
+</div>
+
+<!-- مؤشر حالة الاتصال -->
+<div id="connectionStatus" class="connection-status">
+  غير متصل بالإنترنت
+</div>
 
 <div id="authContainer">
   <h2 id="formTitle">💬 مرحباً بك في ChatPro</h2>
@@ -1095,12 +1212,13 @@
   const db = getFirestore(app);
   const storage = getStorage(app);
 
-  // متغيرات عامة محسّنة للأداء
+  // متغيرات عامة محسّنة للأداء والتحديث الفوري
   let currentUser = null;
   let currentChatUser = null;
   let unsubscribeMessages = null;
   let unsubscribeUsers = null;
   let unsubscribeTyping = null;
+  let unsubscribeGlobalMessages = null;
   let usersData = new Map();
   let unreadCounts = new Map();
   let blockedUsers = new Set();
@@ -1110,6 +1228,9 @@
   let soundsEnabled = localStorage.getItem('soundsEnabled') !== 'false';
   let isLogin = true;
   let messagesCache = new Map();
+  let lastMessageTimestamp = null;
+  let isAppVisible = true;
+  let notificationPermission = 'default';
 
   // عناصر DOM
   const authContainer = document.getElementById('authContainer');
@@ -1168,8 +1289,103 @@
   const blockModalMessage = document.getElementById('blockModalMessage');
   const confirmBlockBtn = document.getElementById('confirmBlockBtn');
   const cancelBlockBtn = document.getElementById('cancelBlockBtn');
+  const newMessageNotification = document.getElementById('newMessageNotification');
+  const notificationContent = document.getElementById('notificationContent');
+  const connectionStatus = document.getElementById('connectionStatus');
 
-  // دوال مساعدة محسّنة
+  // مراقبة حالة الرؤية والاتصال
+  document.addEventListener('visibilitychange', () => {
+    isAppVisible = !document.hidden;
+    if (isAppVisible) {
+      // إخفاء الإشعارات عند العودة للتطبيق
+      hideNotification();
+    }
+  });
+
+  // مراقبة حالة الاتصال بالإنترنت
+  window.addEventListener('online', () => {
+    connectionStatus.textContent = 'متصل بالإنترنت';
+    connectionStatus.classList.add('connected');
+    connectionStatus.style.display = 'block';
+    setTimeout(() => {
+      connectionStatus.style.display = 'none';
+    }, 2000);
+  });
+
+  window.addEventListener('offline', () => {
+    connectionStatus.textContent = 'غير متصل بالإنترنت';
+    connectionStatus.classList.remove('connected');
+    connectionStatus.style.display = 'block';
+  });
+
+  // طلب إذن الإشعارات
+  const requestNotificationPermission = async () => {
+    if ('Notification' in window) {
+      notificationPermission = await Notification.requestPermission();
+    }
+  };
+
+  // إظهار إشعار الرسالة الجديدة
+  const showNewMessageNotification = (senderName, messageText, isInChat = false) => {
+    if (!notificationsEnabled || isAppVisible) return;
+
+    // إشعار في التطبيق
+    if (!isInChat) {
+      notificationContent.innerHTML = `
+        <strong>${senderName}</strong><br>
+        ${messageText.length > 50 ? messageText.substring(0, 50) + '...' : messageText}
+      `;
+      newMessageNotification.classList.add('show');
+      
+      setTimeout(() => {
+        hideNotification();
+      }, 4000);
+      
+      newMessageNotification.onclick = () => {
+        hideNotification();
+        const sender = Array.from(usersData.values()).find(user => user.username === senderName);
+        if (sender) {
+          openChat(sender);
+        }
+      };
+    }
+
+    // إشعار النظام
+    if (notificationPermission === 'granted' && !isAppVisible) {
+      const notification = new Notification(`رسالة جديدة من ${senderName}`, {
+        body: messageText,
+        icon: '/icon-192x192.png',
+        badge: '/icon-192x192.png',
+        tag: 'new-message',
+        requireInteraction: false,
+        silent: !soundsEnabled
+      });
+
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
+        const sender = Array.from(usersData.values()).find(user => user.username === senderName);
+        if (sender) {
+          openChat(sender);
+        }
+      };
+
+      setTimeout(() => {
+        notification.close();
+      }, 5000);
+    }
+
+    // تشغيل الصوت
+    if (soundsEnabled) {
+      notificationSound.play().catch(e => console.log('Sound play failed:', e));
+    }
+  };
+
+  const hideNotification = () => {
+    newMessageNotification.classList.remove('show');
+  };
+
+  // دوال مساعدة محسّنة للتحديث الفوري
   const debounce = (func, wait) => {
     let timeout;
     return function executedFunction(...args) {
@@ -1180,6 +1396,19 @@
       clearTimeout(timeout);
       timeout = setTimeout(later, wait);
     };
+  };
+
+  const throttle = (func, limit) => {
+    let inThrottle;
+    return function() {
+      const args = arguments;
+      const context = this;
+      if (!inThrottle) {
+        func.apply(context, args);
+        inThrottle = true;
+        setTimeout(() => inThrottle = false, limit);
+      }
+    }
   };
 
   const getUserInitials = (username) => {
@@ -1245,7 +1474,6 @@
     usersListContainer.classList.add('hidden');
     chatContainer.style.display = 'flex';
     messageInput.focus();
-    // تحديث حالة المحادثة المفتوحة
     history.pushState({ view: 'chat' }, '', '');
   };
 
@@ -1262,7 +1490,6 @@
       unsubscribeTyping = null;
     }
     typingIndicator.style.display = 'none';
-    // تحديث حالة التاريخ
     history.pushState({ view: 'users' }, '', '');
     renderUsersList();
   };
@@ -1364,12 +1591,11 @@
     }
   });
 
-  // وظائف التطبيق المحسّنة
+  // وظائف التطبيق المحسّنة للتحديث الفوري
   const renderUsersList = debounce(() => {
     const fragment = document.createDocumentFragment();
     const searchTerm = searchInput.value.toLowerCase();
     
-    // تحويل Map إلى مصفوفة وفلترة المستخدمين
     const filteredUsers = Array.from(usersData.values())
       .filter(user => 
         user.uid !== currentUser?.uid && 
@@ -1377,14 +1603,12 @@
         !blockedUsers.has(user.uid)
       )
       .sort((a, b) => {
-        // ترتيب حسب الاتصال أولاً ثم حسب آخر نشاط
         const aOnline = onlineUsers.has(a.uid);
         const bOnline = onlineUsers.has(b.uid);
         
         if (aOnline && !bOnline) return -1;
         if (!aOnline && bOnline) return 1;
         
-        // ترتيب حسب عدد الرسائل غير المقروءة
         const aUnread = unreadCounts.get(a.uid) || 0;
         const bUnread = unreadCounts.get(b.uid) || 0;
         
@@ -1436,14 +1660,14 @@
     usersList.appendChild(fragment);
   }, 100);
 
-  const renderMessage = (message) => {
+  const renderMessage = (message, isNew = false) => {
     const isSent = message.senderId === currentUser.uid;
     const messageWrapper = document.createElement('div');
     messageWrapper.className = `message-wrapper ${isSent ? 'sent' : 'received'}`;
     messageWrapper.setAttribute('data-msg-id', message.id);
 
     const messageElement = document.createElement('div');
-    messageElement.className = `message ${isSent ? 'sent' : 'received'}`;
+    messageElement.className = `message ${isSent ? 'sent' : 'received'} ${isNew ? 'new' : ''}`;
     
     let contentHTML = '';
     
@@ -1480,25 +1704,29 @@
     requestAnimationFrame(() => {
       messagesArea.scrollTop = messagesArea.scrollHeight;
     });
+
+    // إزالة كلاس الرسالة الجديدة بعد الانيميشن
+    if (isNew) {
+      setTimeout(() => {
+        messageElement.classList.remove('new');
+      }, 500);
+    }
   };
 
+  // تحديث دالة فتح المحادثة للتحديث الفوري
   const openChat = async (user) => {
     currentChatUser = user;
     
-    // تحديث واجهة المحادثة
     document.getElementById('chatUserName').textContent = user.username;
     document.getElementById('chatUserAvatar').textContent = getUserInitials(user.username);
     document.getElementById('chatUserStatus').textContent = 
       onlineUsers.has(user.uid) ? 'متصل' : formatLastSeen(user.lastSeen);
     
-    // تحديث حالة زر الحظر
     const isBlocked = blockedUsers.has(user.uid);
     blockUserBtn.title = isBlocked ? 'إلغاء الحظر' : 'حظر المستخدم';
     blockUserBtn.style.opacity = isBlocked ? '0.5' : '1';
     
     showChat();
-    
-    // مسح منطقة الرسائل
     messagesArea.innerHTML = '';
     
     const chatId = getChatId(currentUser.uid, currentChatUser.uid);
@@ -1518,11 +1746,10 @@
       
       await Promise.all(updatePromises);
       
-      // تصفير عداد الرسائل غير المقروءة
       unreadCounts.set(user.uid, 0);
       renderUsersList();
       
-      // الاستماع للرسائل الجديدة
+      // الاستماع للرسائل الجديدة مع التحديث الفوري
       if (unsubscribeMessages) {
         unsubscribeMessages();
       }
@@ -1530,36 +1757,111 @@
       const messagesQuery = query(
         collection(db, "chats", chatId, "messages"), 
         orderBy("timestamp"),
-        limit(50) // تحديد عدد الرسائل المحملة
+        limit(50)
       );
       
+      let isFirstLoad = true;
       unsubscribeMessages = onSnapshot(messagesQuery, (snapshot) => {
         snapshot.docChanges().forEach(change => {
           const message = { id: change.doc.id, ...change.doc.data() };
           
           if (change.type === "added") {
-            renderMessage(message);
+            const isNewMessage = !isFirstLoad;
+            renderMessage(message, isNewMessage);
             
-            // تشغيل صوت الإشعار للرسائل الواردة
-            if (message.senderId !== currentUser.uid && soundsEnabled) {
+            // تشغيل صوت الإشعار للرسائل الواردة الجديدة فقط
+            if (message.senderId !== currentUser.uid && isNewMessage && soundsEnabled) {
               notificationSound.play().catch(e => console.log('Sound play failed:', e));
             }
           }
         });
         
-        // إخفاء حالة فارغة إذا وجدت رسائل
         const emptyState = messagesArea.querySelector('.empty-state');
         if (emptyState && messagesArea.children.length > 1) {
           emptyState.remove();
         }
+        
+        isFirstLoad = false;
+      }, (error) => {
+        console.error("Error listening to messages:", error);
       });
       
-      // الاستماع لحالة الكتابة
       listenForTyping(currentChatUser.uid);
       
     } catch (error) {
       console.error("Error opening chat:", error);
     }
+  };
+
+  // إعداد مستمع عام للرسائل الجديدة
+  const setupGlobalMessageListener = () => {
+    if (unsubscribeGlobalMessages) {
+      unsubscribeGlobalMessages();
+    }
+
+    // مستمع لجميع المحادثات للمستخدم الحالي
+    const allChatsQuery = query(
+      collection(db, "chats")
+    );
+
+    unsubscribeGlobalMessages = onSnapshot(allChatsQuery, (snapshot) => {
+      snapshot.docChanges().forEach(async (change) => {
+        if (change.type === "added" || change.type === "modified") {
+          const chatId = change.doc.id;
+          
+          // التحقق من أن المحادثة تخص المستخدم الحالي
+          if (chatId.includes(currentUser.uid)) {
+            const messagesQuery = query(
+              collection(db, "chats", chatId, "messages"),
+              where("receiverId", "==", currentUser.uid),
+              where("read", "==", false),
+              orderBy("timestamp", "desc"),
+              limit(1)
+            );
+
+            const messagesSnapshot = await getDocs(messagesQuery);
+            
+            messagesSnapshot.forEach(messageDoc => {
+              const message = messageDoc.data();
+              const senderId = message.senderId;
+              
+              // التحقق من أن الرسالة جديدة وليست من المستخدم الحالي
+              if (senderId !== currentUser.uid) {
+                const sender = usersData.get(senderId);
+                if (sender) {
+                  // تحديث عداد الرسائل غير المقروءة
+                  const currentUnread = unreadCounts.get(senderId) || 0;
+                  unreadCounts.set(senderId, currentUnread + 1);
+                  
+                  // تحديث واجهة قائمة المستخدمين
+                  const userCard = document.querySelector(`[data-uid="${senderId}"]`);
+                  if (userCard) {
+                    userCard.classList.add('new-message');
+                    setTimeout(() => {
+                      userCard.classList.remove('new-message');
+                    }, 500);
+                  }
+                  
+                  renderUsersList();
+                  
+                  // إظهار الإشعار إذا لم تكن المحادثة مفتوحة
+                  const isInCurrentChat = currentChatUser && currentChatUser.uid === senderId;
+                  if (!isInCurrentChat) {
+                    showNewMessageNotification(
+                      sender.username, 
+                      message.text || 'صورة' || 'فيديو',
+                      false
+                    );
+                  }
+                }
+              }
+            });
+          }
+        }
+      });
+    }, (error) => {
+      console.error("Error in global message listener:", error);
+    });
   };
 
   const sendMessage = async (type = 'text', content = null) => {
@@ -1585,7 +1887,8 @@
       
       if (type === 'text') {
         messageInput.value = '';
-        // إيقاف مؤشر الكتابة
+        messageInput.style.height = 'auto';
+        
         if (typingTimeout) clearTimeout(typingTimeout);
         await setDoc(doc(db, "typing", currentUser.uid), { isTyping: false }, { merge: true });
       }
@@ -1600,7 +1903,6 @@
     const storageRef = ref(storage, `media/${currentUser.uid}/${Date.now()}_${file.name}`);
     const uploadTask = uploadBytesResumable(storageRef, file);
 
-    // إظهار مؤشر التحميل
     const loadingWrapper = document.createElement('div');
     loadingWrapper.className = 'message-wrapper sent';
     loadingWrapper.innerHTML = `
@@ -1715,11 +2017,9 @@
           let blockedUsersList = userDoc.data().blockedUsers || [];
           
           if (isBlocked) {
-            // إلغاء الحظر
             blockedUsersList = blockedUsersList.filter(uid => uid !== currentChatUser.uid);
             blockedUsers.delete(currentChatUser.uid);
           } else {
-            // إضافة للحظر
             if (!blockedUsersList.includes(currentChatUser.uid)) {
               blockedUsersList.push(currentChatUser.uid);
               blockedUsers.add(currentChatUser.uid);
@@ -1728,7 +2028,6 @@
           
           await updateDoc(userRef, { blockedUsers: blockedUsersList });
           
-          // تحديث واجهة المستخدم
           blockUserBtn.title = blockedUsers.has(currentChatUser.uid) ? 'إلغاء الحظر' : 'حظر المستخدم';
           blockUserBtn.style.opacity = blockedUsers.has(currentChatUser.uid) ? '0.5' : '1';
           
@@ -1742,21 +2041,22 @@
     };
   };
 
-  // وظائف Firebase محسّنة
+  // وظائف Firebase محسّنة للتحديث الفوري
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       currentUser = user;
       showApp();
 
+      // طلب إذن الإشعارات
+      await requestNotificationPermission();
+
       try {
-        // تحديث حالة الاتصال
         const userRef = doc(db, "users", currentUser.uid);
         await setDoc(userRef, { 
           isOnline: true, 
           lastActive: serverTimestamp() 
         }, { merge: true });
 
-        // معالجة إغلاق النافذة/التطبيق
         const handleDisconnect = async () => {
           await updateDoc(userRef, { 
             isOnline: false, 
@@ -1767,7 +2067,6 @@
         window.addEventListener('beforeunload', handleDisconnect);
         window.addEventListener('pagehide', handleDisconnect);
 
-        // جلب بيانات المستخدم الحالي
         const userDoc = await getDoc(userRef);
         if (userDoc.exists()) {
           const userData = userDoc.data();
@@ -1777,13 +2076,12 @@
           blockedUsers = new Set(userData.blockedUsers || []);
         }
 
-        // الاستماع لبيانات المستخدمين بكفاءة أكبر
+        // إعداد مستمع المستخدمين مع التحديث الفوري
         if (unsubscribeUsers) {
           unsubscribeUsers();
         }
 
         unsubscribeUsers = onSnapshot(collection(db, "users"), async (snapshot) => {
-          // تحديث بيانات المستخدمين
           onlineUsers.clear();
           
           snapshot.docs.forEach(doc => {
@@ -1795,7 +2093,7 @@
             }
           });
 
-          // حساب الرسائل غير المقروءة بكفاءة
+          // حساب الرسائل غير المقروءة
           const unreadPromises = Array.from(usersData.keys())
             .filter(uid => uid !== currentUser.uid)
             .map(async (uid) => {
@@ -1817,10 +2115,14 @@
 
           await Promise.all(unreadPromises);
           
-          // تحديث واجهة المستخدم
           usersCountElement.textContent = `${onlineUsers.size} متصل / ${snapshot.size} مستخدم`;
           renderUsersList();
+        }, (error) => {
+          console.error("Error listening to users:", error);
         });
+
+        // إعداد مستمع الرسائل العام
+        setupGlobalMessageListener();
         
       } catch (error) {
         console.error("Error setting up user session:", error);
@@ -1841,6 +2143,10 @@
       if (unsubscribeTyping) {
         unsubscribeTyping();
         unsubscribeTyping = null;
+      }
+      if (unsubscribeGlobalMessages) {
+        unsubscribeGlobalMessages();
+        unsubscribeGlobalMessages = null;
       }
       
       // تنظيف البيانات
@@ -1866,7 +2172,6 @@
   messageInput.addEventListener('input', () => {
     handleTyping();
     
-    // تحديث ارتفاع textarea تلقائياً
     messageInput.style.height = 'auto';
     messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
   });
@@ -1882,9 +2187,6 @@
     if (!menuBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
       dropdownMenu.style.display = 'none';
     }
-    if (!blockModal.contains(e.target)) {
-      // يمكن إضافة منطق إضافي هنا
-    }
   });
 
   blockUserBtn.addEventListener('click', handleBlockUser);
@@ -1897,7 +2199,7 @@
   imageInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) handleMediaUpload(file);
-    e.target.value = ''; // إعادة تعيين القيمة
+    e.target.value = '';
   });
 
   videoInput.addEventListener('change', (e) => {
@@ -2006,24 +2308,6 @@
       }
     });
   });
-
-  // تحسين الأداء - تأجيل تحميل الصور
-  const observeImages = () => {
-    const imageObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const img = entry.target;
-          img.src = img.dataset.src;
-          img.classList.remove('lazy');
-          imageObserver.unobserve(img);
-        }
-      });
-    });
-
-    document.querySelectorAll('img[data-src]').forEach(img => {
-      imageObserver.observe(img);
-    });
-  };
 
   // إعداد Service Worker للعمل دون اتصال
   if ('serviceWorker' in navigator) {
